@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Narde — Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#15161a; --surface:#1a1c21; --surface2:#23252b; --surface3:#1f2127;
+    --border:rgba(255,255,255,.08);
+    --text:#f1efe9; --text2:#cfd0d6; --muted:#83858e;
+    --accent:#46ac79; --accent-text:#7fdca8; --on-accent:#0e1411;
+    --win:#7fdca8; --loss:#e08079;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:Manrope,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+  .app{max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:0 18px 80px}
+  .tnum{font-variant-numeric:tabular-nums}
+  .ov{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+  a{color:inherit;text-decoration:none}
+
+  .topbar{display:flex;align-items:center;gap:8px;padding:14px 0}
+  .ic{width:34px;height:34px;border-radius:11px;background:var(--surface3);display:flex;align-items:center;
+    justify-content:center;color:var(--text2);font-size:20px;border:none;cursor:pointer}
+  .ttl{flex:1;text-align:center;font-size:17px;font-weight:800}
+
+  .head{display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 0 18px}
+  .avatar{width:84px;height:84px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:32px;font-weight:800;background:radial-gradient(circle at 38% 30%,#f5edda,#d7c8a6 82%);color:#2a251d;
+    box-shadow:0 0 0 3px var(--accent),0 10px 26px rgba(0,0,0,.5)}
+  .name{font-size:22px;font-weight:800;margin-top:12px;display:flex;align-items:center;gap:8px}
+  .flag{font-size:10px;font-weight:700;background:var(--surface2);border-radius:5px;padding:2px 6px;color:var(--text2)}
+  .rating{font-size:13px;font-weight:700;color:var(--muted);margin-top:4px}
+  .rating b{color:var(--accent-text);font-size:15px}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 6px;text-align:center}
+  .stat .v{font-size:18px;font-weight:800}
+  .stat .l{font-size:10px;font-weight:700;color:var(--muted);margin-top:3px}
+
+  .sec{font-size:15px;font-weight:800;margin:4px 2px 8px}
+  .glist{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px}
+  .grow{display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid var(--border)}
+  .grow:last-child{border-bottom:none}
+  .gava{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    font-size:14px;font-weight:800;background:radial-gradient(circle at 38% 30%,#45474e,#1b1c20 84%);color:#ece8df}
+  .gmid{flex:1}
+  .gmid .o{font-size:14px;font-weight:700}
+  .gmid .m{font-size:12px;font-weight:600;color:var(--muted);margin-top:2px}
+  .res{font-size:13px;font-weight:800;text-align:right}
+  .res .w{color:var(--win)}
+  .res .l{color:var(--loss)}
+  .res .d{font-size:11px;font-weight:700;color:var(--muted);margin-top:2px}
+
+  .btn{width:100%;height:50px;border-radius:14px;border:1px solid var(--border);background:var(--surface2);
+    color:var(--text);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}
+
+  .nav{position:fixed;left:0;right:0;bottom:0;max-width:430px;margin:0 auto;display:flex;
+    background:#16171c;border-top:1px solid var(--border);padding:9px 0 14px}
+  .nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;
+    color:var(--muted);font-size:10.5px;font-weight:700}
+  .nav a.on{color:var(--accent-text)}
+  .nav .nic{width:22px;height:22px;border-radius:6px;border:2px solid currentColor;opacity:.9}
+  .nav a.on .nic{background:rgba(70,172,121,.18)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <a class="ic" href="home.html">‹</a>
+    <div class="ttl">Profile</div>
+    <button class="ic">⚙</button>
+  </div>
+
+  <div class="head">
+    <div class="avatar">R</div>
+    <div class="name">Ruben V. <span class="flag">AM</span></div>
+    <div class="rating">Rating <b class="tnum">1610</b> · peak 1672</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="v tnum">214</div><div class="l">GAMES</div></div>
+    <div class="stat"><div class="v tnum">58%</div><div class="l">WIN RATE</div></div>
+    <div class="stat"><div class="v tnum">31</div><div class="l">MARS</div></div>
+    <div class="stat"><div class="v tnum">12</div><div class="l">STREAK</div></div>
+  </div>
+
+  <div class="sec">Recent games</div>
+  <div class="glist" id="glist"></div>
+
+  <button class="btn">Settings</button>
+</div>
+
+<div class="nav">
+  <a href="home.html"><span class="nic"></span>Home</a>
+  <a href="long_narde_prototype.html"><span class="nic"></span>Play</a>
+  <a href="review.html"><span class="nic"></span>Puzzles</a>
+  <a class="on" href="profile.html"><span class="nic"></span>Profile</a>
+</div>
+
+<script>
+  var games = [
+    ["A","Aram H.","Rated · Mars","win","+28"],
+    ["N","Narde Engine","Lvl 8 · Casual","win","—"],
+    ["M","Mehdi R.","Rated · 5–3","loss","−14"],
+    ["G","Giorgos P.","Rated · 5–2","win","+19"],
+    ["E","Elnur Q.","Rated · 3–5","loss","−12"]
+  ];
+  var html="";
+  games.forEach(function(g){
+    var w = g[3]==="win";
+    html += '<a class="grow" href="review.html">'+
+      '<div class="gava">'+g[0]+'</div>'+
+      '<div class="gmid"><div class="o">'+g[1]+'</div><div class="m">'+g[2]+'</div></div>'+
+      '<div class="res"><div class="'+(w?"w":"l")+'">'+(w?"Win":"Loss")+'</div>'+
+      '<div class="d tnum">'+g[4]+'</div></div></a>';
+  });
+  document.getElementById("glist").innerHTML = html;
+</script>
+</body>
+</html>

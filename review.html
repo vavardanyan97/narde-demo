@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Narde — Game review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#15161a; --surface:#1a1c21; --surface2:#23252b; --surface3:#1f2127;
+    --border:rgba(255,255,255,.08);
+    --text:#f1efe9; --text2:#cfd0d6; --muted:#83858e;
+    --accent:#46ac79; --accent-text:#7fdca8; --on-accent:#0e1411;
+    --blunder:#d6584f;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:Manrope,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+  .app{max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:0 18px 22px}
+  .tnum{font-variant-numeric:tabular-nums}
+  .ov{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+  a{color:inherit;text-decoration:none}
+
+  .topbar{display:flex;align-items:center;gap:8px;padding:14px 0}
+  .ic{width:34px;height:34px;border-radius:11px;background:var(--surface3);display:flex;align-items:center;
+    justify-content:center;color:var(--text2);font-size:20px;border:none;cursor:pointer;text-decoration:none}
+  .ttl{flex:1;text-align:center;font-size:17px;font-weight:800;letter-spacing:-.01em}
+
+  .acc{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px;
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .ring{width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+  .ring .disc{width:54px;height:54px;border-radius:50%;background:var(--surface);display:flex;
+    flex-direction:column;align-items:center;justify-content:center}
+  .ring .disc b{font-size:19px;font-weight:800;line-height:1}
+  .ring .disc span{font-size:9px;font-weight:700;color:var(--muted)}
+  .acc .mid{text-align:center}
+  .acc .mid .who{font-size:15px;font-weight:800;color:var(--accent-text);margin-top:3px}
+  .acc .side{text-align:center}
+  .acc .side .lbl{font-size:11px;font-weight:700;color:var(--muted);margin-top:6px}
+
+  .callout{border-radius:16px;padding:14px;display:flex;gap:12px;margin-bottom:16px;
+    background:rgba(214,88,79,.1);border:1px solid rgba(214,88,79,.32)}
+  .qtile{width:38px;height:38px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;
+    font-size:15px;font-weight:800;background:rgba(214,88,79,.18);color:var(--blunder)}
+  .callout .t{font-size:14px;font-weight:800}
+  .callout .d{font-size:12.5px;font-weight:600;color:var(--text2);margin-top:4px;line-height:1.5}
+  .callout .best{color:var(--accent-text);font-weight:800}
+  .callout .delta{color:#e08079;font-weight:800}
+
+  .moves-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+  .moves-h .t{font-size:15px;font-weight:800}
+  .moves-h .s{font-size:12px;font-weight:700;color:var(--muted)}
+  .mlist{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+  .mrow{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border)}
+  .mrow:last-child{border-bottom:none}
+  .mrow.flag{background:rgba(214,88,79,.1)}
+  .mno{width:26px;font-size:13px;font-weight:700;color:var(--muted)}
+  .half{flex:1;display:flex;align-items:center;gap:7px}
+  .nota{font-size:13.5px;font-weight:700}
+  .badge{font-size:11px;font-weight:800;padding:2px 6px;border-radius:6px}
+  .b-best{color:#46ac79;background:rgba(70,172,121,.18)}
+  .b-good{color:#7fc095;background:rgba(127,192,149,.14)}
+  .b-inacc{color:#d8a23e;background:rgba(216,162,62,.18)}
+  .b-mist{color:#d77f3a;background:rgba(215,127,58,.18)}
+  .b-blun{color:#d6584f;background:rgba(214,88,79,.18)}
+
+  .actions{display:flex;gap:10px;margin-top:16px}
+  .btn{flex:1;height:52px;border-radius:15px;border:none;font-family:inherit;font-size:15px;font-weight:800;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s}
+  .btn:active{transform:scale(.985)}
+  .btn.secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+  .btn.primary{background:linear-gradient(180deg,#54bd87,#3f9d6e);color:var(--on-accent);
+    box-shadow:0 10px 22px rgba(70,172,121,.3)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <a class="ic" href="home.html">‹</a>
+    <div class="ttl">Game review</div>
+    <button class="ic">↗</button>
+  </div>
+
+  <div class="acc">
+    <div class="side">
+      <div class="ring" style="background:conic-gradient(#46ac79 313deg, rgba(255,255,255,.08) 0)">
+        <div class="disc"><b class="tnum">87<span style="font-size:10px">%</span></b></div>
+      </div>
+      <div class="lbl">You</div>
+    </div>
+    <div class="mid">
+      <div class="ov">Accuracy</div>
+      <div class="who">You won · Mars</div>
+    </div>
+    <div class="side">
+      <div class="ring" style="background:conic-gradient(#6fb88c 284deg, rgba(255,255,255,.08) 0)">
+        <div class="disc"><b class="tnum">79<span style="font-size:10px">%</span></b></div>
+      </div>
+      <div class="lbl">Aram</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="qtile">??</div>
+    <div>
+      <div class="t">Move 14 · Black blundered 24/18</div>
+      <div class="d">Best was <span class="best">13/7 13/11</span> — keeps the wall and traps White's
+        back checkers. <span class="delta">−8.4%</span></div>
+    </div>
+  </div>
+
+  <div class="moves-h">
+    <div class="t">Moves</div>
+    <div class="s">tap to replay</div>
+  </div>
+  <div class="mlist" id="mlist"></div>
+
+  <div class="actions">
+    <button class="btn secondary">Share</button>
+    <a class="btn primary" href="long_narde_prototype.html">Rematch</a>
+  </div>
+</div>
+
+<script>
+  // Demo move list (notation + quality). Real data comes from the engine analysis.
+  var rows = [
+    [1,"24/21","best","13/10","best"],
+    [2,"13/8","good","24/20","good"],
+    [3,"8/4","good","12/9","inacc"],
+    [4,"21/16","best","6/2","good"],
+    [5,"13/11","good","20/15","mist"],
+    [6,"16/10","good","9/3","good"],
+    [7,"6/1","good","24/18","blun"],
+    [8,"11/5","best","13/7","good"],
+    [9,"10/4","good","15/11","good"],
+    [10,"5/off","best","7/1","good"]
+  ];
+  var names = {best:["Best","b-best","!"],good:["Good","b-good","✓"],inacc:["Inaccuracy","b-inacc","?!"],
+    mist:["Mistake","b-mist","?"],blun:["Blunder","b-blun","??"]};
+  var html = "";
+  rows.forEach(function(r){
+    var w=names[r[2]], b=names[r[4]];
+    var flag = r[2]==="blun"||r[4]==="blun" ? " flag" : "";
+    html += '<div class="mrow'+flag+'">'+
+      '<div class="mno tnum">'+r[0]+'</div>'+
+      '<div class="half"><span class="nota tnum">'+r[1]+'</span><span class="badge '+w[1]+'">'+w[2]+'</span></div>'+
+      '<div class="half"><span class="nota tnum">'+r[3]+'</span><span class="badge '+b[1]+'">'+b[2]+'</span></div>'+
+      '</div>';
+  });
+  document.getElementById("mlist").innerHTML = html;
+</script>
+</body>
+</html>

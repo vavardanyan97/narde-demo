@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Long Narde — Playable Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#15161a; --surface:#1a1c21; --surface2:#23252b; --line:rgba(255,255,255,.08);
+    --text:#f1efe9; --muted:#83858e; --info:#46ac79; --info-bg:#1c3a2d;
+    --success:#46ac79; --board:#241a11; --bar:#2b1f12;
+    --pt-light:#876645; --pt-dark:#43301e;
+    --w:#ece2cd; --w-line:#bfaf86; --b:#26282d; --b-line:#0e0f13;
+    --accent:#46ac79; --accent-text:#7fdca8; --on-accent:#0e1411;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:Manrope,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .app{max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+  .topbar{display:flex;align-items:center;gap:10px;padding:14px 16px 8px}
+  .brand{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600}
+  .brand .dot{width:14px;height:14px;border-radius:50%;background:var(--info)}
+  .spacer{flex:1}
+  .pill{font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--line);
+    border-radius:8px;padding:5px 10px}
+  .oppbar{display:flex;align-items:center;gap:10px;padding:6px 16px}
+  .av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700;background:radial-gradient(circle at 38% 30%,#45474e,#1b1c20 84%);color:#ece8df;
+    box-shadow:0 2px 6px rgba(0,0,0,.35)}
+  .av.you{background:linear-gradient(135deg,#3a4655,#5a6b80);color:#fff}
+  .nm{font-size:14px;font-weight:600;line-height:1.15}
+  .sub{font-size:12px;color:var(--muted)}
+  .clock{margin-left:auto;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;
+    background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+  .boardwrap{padding:8px 12px}
+  .board{position:relative;background:linear-gradient(160deg,#2c2013,#20160d);border-radius:16px;padding:10px;box-shadow:0 12px 30px rgba(0,0,0,.5),inset 0 0 0 6px #1d150d}
+  .row{display:flex;height:150px}
+  .bar{width:16px;background:#2b1f12;border-radius:4px;margin:0 5px;box-shadow:inset 0 0 6px rgba(0,0,0,.5)}
+  .cell{position:relative;flex:1;cursor:pointer}
+  .tri{position:absolute;left:50%;transform:translateX(-50%);width:0;height:0;
+    border-left:14px solid transparent;border-right:14px solid transparent}
+  .tri.dn{top:0;border-top:132px solid var(--p)}
+  .tri.up{bottom:0;border-bottom:132px solid var(--p)}
+  .lbl{position:absolute;left:0;right:0;text-align:center;font-size:9px;color:#7f93a8}
+  .row.top .lbl{top:1px}
+  .row.bot .lbl{bottom:1px}
+  .chk{width:26px;height:26px;border-radius:50%;position:absolute;left:50%;
+    transform:translateX(-50%);box-sizing:border-box}
+  .chk.w{background:radial-gradient(circle at 38% 30%,#f5edda,#d7c8a6 82%);box-shadow:0 1px 2px rgba(0,0,0,.5),inset 0 0 0 1.5px #bfaf86}
+  .chk.b{background:radial-gradient(circle at 38% 30%,#45474e,#1b1c20 84%);box-shadow:0 1px 2px rgba(0,0,0,.5),inset 0 0 0 1.5px #0e0f13}
+  .badge{position:absolute;left:50%;transform:translateX(-50%);width:26px;height:26px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .badge.w{background:radial-gradient(circle at 38% 30%,#f5edda,#d7c8a6 82%);color:#2a251d;box-shadow:0 1px 2px rgba(0,0,0,.5),inset 0 0 0 1.5px #bfaf86}
+  .badge.b{background:radial-gradient(circle at 38% 30%,#45474e,#1b1c20 84%);color:#ece8df;box-shadow:0 1px 2px rgba(0,0,0,.5),inset 0 0 0 1.5px #0e0f13}
+  .cell.src::after{content:"";position:absolute;inset:6px;border:2px solid var(--success);
+    border-radius:10px;pointer-events:none}
+  .cell.sel::after{content:"";position:absolute;inset:6px;border:2.5px solid var(--accent);
+    border-radius:10px;pointer-events:none;box-shadow:0 0 12px rgba(70,172,121,.5)}
+  .dest{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:18px;height:18px;
+    border-radius:50%;background:var(--success);box-shadow:0 0 10px rgba(52,210,123,.85);pointer-events:none}
+  .trays{display:flex;gap:8px;padding:8px 12px 0}
+  .tray{flex:1;background:var(--surface);border:1px dashed var(--line);border-radius:10px;
+    padding:8px;text-align:center;font-size:12px;color:var(--muted);min-height:46px}
+  .tray.canoff{border-color:var(--success);color:var(--success)}
+  .controls{display:flex;align-items:center;gap:10px;padding:12px 16px}
+  .dice{display:flex;gap:8px}
+  .die{width:38px;height:38px;background:linear-gradient(160deg,#fdfcf8,#ebe6d8);border-radius:10px;display:grid;
+    grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:6px;
+    box-shadow:0 4px 10px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.85)}
+  .die.used{opacity:.3}
+  .pip{width:6px;height:6px;border-radius:50%;background:#2a2f37;align-self:center;justify-self:center;box-shadow:inset 0 1px 1px rgba(0,0,0,.4)}
+  .status{flex:1;font-size:13px;color:var(--muted)}
+  .status b{color:var(--text);font-weight:600}
+  .btn{font-size:14px;font-weight:600;padding:11px 18px;border-radius:999px;border:1px solid var(--line);
+    background:var(--surface2);color:var(--text);cursor:pointer;transition:transform .12s,filter .12s}
+  .btn:active{transform:scale(.97)}
+  .btn.primary{background:linear-gradient(180deg,#54bd87,#3f9d6e);border:none;color:#0e1411;
+    box-shadow:0 8px 20px rgba(70,172,121,.34)}
+  .btn:disabled{opacity:.4;cursor:default;box-shadow:none}
+  .row2{display:flex;gap:8px;padding:0 16px 16px}
+  .note{padding:0 16px 22px;font-size:12px;color:var(--muted);line-height:1.5}
+  .overlay{position:fixed;inset:0;background:rgba(8,12,18,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;
+    align-items:center;justify-content:center;padding:24px;z-index:10}
+  .overlay.show{display:flex}
+  .modal{background:linear-gradient(160deg,#1b2a3c,#142031);border:1px solid var(--line);border-radius:18px;
+    padding:26px;max-width:320px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.55)}
+  .modal h2{margin:0 0 6px;font-size:22px}
+  .modal p{margin:0 0 18px;color:var(--muted);font-size:14px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--surface2);
+    border:1px solid var(--line);color:var(--text);padding:10px 16px;border-radius:10px;font-size:13px;
+    opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  .die.rolling{animation:shake .12s linear infinite}
+  @keyframes shake{0%{transform:translateY(0) rotate(-7deg)}50%{transform:translateY(-3px) rotate(7deg)}100%{transform:translateY(0) rotate(-7deg)}}
+  .cell.flash::after{content:"";position:absolute;inset:6px;border:2.5px solid var(--accent);border-radius:10px;pointer-events:none;box-shadow:0 0 12px rgba(70,172,121,.5)}
+  .modal.result{max-width:340px;padding:26px 22px}
+  .emblem{width:74px;height:74px;border-radius:21px;margin:0 auto 14px;position:relative;
+    background:linear-gradient(150deg,#54bd87,#2f8a5e);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 14px 34px rgba(70,172,121,.4)}
+  .ediamond{width:26px;height:26px;background:#ece2cd;transform:rotate(45deg);border-radius:6px}
+  .pbadge{position:absolute;top:-8px;right:-8px;background:var(--bg);border:1px solid var(--accent);
+    color:var(--accent-text);font-size:13px;font-weight:800;padding:2px 9px;border-radius:999px}
+  .rhead{font-size:32px;font-weight:800;letter-spacing:-.02em;color:var(--accent-text);margin:0 0 6px}
+  .rsub{font-size:14px;font-weight:600;color:var(--muted);margin:0 0 18px;line-height:1.5}
+  .rsub b{color:#e08079}
+  .rscore{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:18px}
+  .rava{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:14px;font-weight:800}
+  .rava.w{background:radial-gradient(circle at 38% 30%,#f5edda,#d7c8a6 82%);color:#2a251d;
+    box-shadow:0 0 0 2px var(--accent),0 0 14px rgba(70,172,121,.5)}
+  .rava.b{background:radial-gradient(circle at 38% 30%,#45474e,#1b1c20 84%);color:#ece8df}
+  .rscoreval{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums}
+  .rlabel{font-size:10px;font-weight:700;letter-spacing:.09em;color:var(--muted);margin-top:2px}
+  .rbtns{display:flex;flex-direction:column;gap:10px}
+  .rrow{display:flex;gap:10px}
+  .rrow .btn{flex:1}
+  .btn.ghost{background:var(--surface2);color:var(--text);border:1px solid var(--line);
+    text-decoration:none;display:flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <a href="home.html" aria-label="Back to home" style="width:34px;height:34px;border-radius:11px;background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:22px;text-decoration:none;margin-right:8px;flex:none">‹</a>
+    <div class="brand"><span class="dot"></span>Narde</div>
+    <div class="spacer"></div>
+    <div class="pill">vs Engine</div>
+  </div>
+
+  <div class="oppbar">
+    <div class="av" id="oppAv">LN</div>
+    <div>
+      <div class="nm" id="oppName">Long Narde Engine</div>
+      <div class="sub" id="oppSub">Black · engine v1 (trains daily)</div>
+    </div>
+    <div class="clock">∞</div>
+  </div>
+
+  <div class="boardwrap">
+    <div class="board">
+      <div class="row top" id="rowTop"></div>
+      <div class="row bot" id="rowBot"></div>
+    </div>
+  </div>
+
+  <div class="trays">
+    <div class="tray" id="trayW">White off: <b id="offW">0</b></div>
+    <div class="tray" id="trayB">Black off: <b id="offB">0</b></div>
+  </div>
+
+  <div class="controls">
+    <div class="dice" id="dice"></div>
+    <div class="status" id="status">Tap “Roll” to start.</div>
+    <button class="btn primary" id="rollBtn">Roll</button>
+  </div>
+
+  <div class="row2">
+    <button class="btn" id="undoBtn" disabled>Undo turn</button>
+    <button class="btn" id="newBtn">New game</button>
+  </div>
+
+  <div class="note">
+    You play <b>White</b> (cream), moving toward points 1–6. Your opponent is the real
+    Long Narde engine (MCTS + the trained brain), running right here in your browser — it
+    loads the latest trained version from the project automatically. All official rules are
+    enforced: no hitting, head rule, use-both-dice, bearing off, and mars.
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal result" role="dialog" aria-modal="true">
+    <div class="emblem"><div class="ediamond"></div><span class="pbadge" id="ptsBadge">+2</span></div>
+    <h2 class="rhead" id="winTitle">Mars!</h2>
+    <p class="rsub" id="winText"></p>
+    <div class="rscore">
+      <div class="rava w" id="rAvaW">You</div>
+      <div>
+        <div class="rscoreval" id="rScore">1 — 0</div>
+        <div class="rlabel" id="rLabel">GAME WON</div>
+      </div>
+      <div class="rava b" id="rAvaB">LN</div>
+    </div>
+    <div class="rbtns">
+      <button class="btn primary" id="againBtn">Rematch</button>
+      <div class="rrow">
+        <a class="btn ghost" href="review.html">Review game</a>
+        <a class="btn ghost" href="home.html">Home</a>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+var WHITE=1, BLACK=-1, HEAD=24;
+
+function physIndex(pl,rel){ return pl===WHITE ? rel-1 : ((rel-1+12)%24); }
+function toRel(pl,phys){ return pl===WHITE ? phys+1 : (((phys-12)%24)+24)%24 + 1; }
+function owner(bd,p){ var v=bd.pts[p]; return v>0?WHITE:(v<0?BLACK:0); }
+function offCount(bd,pl){ return bd.off[pl]; }
+function allOff(bd,pl){ return bd.off[pl]===15; }
+
+function initialBoard(){
+  var pts=new Array(24).fill(0);
+  pts[physIndex(WHITE,HEAD)] = 15;
+  pts[physIndex(BLACK,HEAD)] = -15;
+  return {pts:pts, off:{}, };
+}
+function mkBoard(pts,offW,offB){ var b={pts:pts.slice(),off:{}}; b.off[WHITE]=offW; b.off[BLACK]=offB; return b; }
+function cloneBoard(bd){ return mkBoard(bd.pts, bd.off[WHITE], bd.off[BLACK]); }
+
+function occupiedRel(bd,pl){ var out=[]; for(var p=0;p<24;p++){ if(owner(bd,p)===pl) out.push(toRel(pl,p)); } return out; }
+function canBearOff(bd,pl){ for(var p=0;p<24;p++){ if(owner(bd,p)===pl && toRel(pl,p)>6) return false; } return true; }
+function pip(bd,pl){ var t=0; for(var p=0;p<24;p++){ if(owner(bd,p)===pl) t+=toRel(pl,p)*Math.abs(bd.pts[p]); } return t; }
+
+function singleSubmoves(bd,pl,die){
+  var subs=[], opp=-pl, bear=canBearOff(bd,pl);
+  var occ=occupiedRel(bd,pl); var hi=occ.length?Math.max.apply(null,occ):0;
+  for(var i=0;i<occ.length;i++){
+    var r=occ[i], target=r-die;
+    if(target>=1){
+      var dest=physIndex(pl,target);
+      if(owner(bd,dest)!==opp) subs.push({fromRel:r,die:die,kind:'move',toRel:target});
+    } else if(bear){
+      if(r===die) subs.push({fromRel:r,die:die,kind:'off',toRel:0});
+      else if(r<die && r===hi) subs.push({fromRel:r,die:die,kind:'off',toRel:0});
+    }
+  }
+  return subs;
+}
+function applySub(bd,pl,s){
+  var nb=cloneBoard(bd);
+  nb.pts[physIndex(pl,s.fromRel)] -= pl;
+  if(s.kind==='off') nb.off[pl]+=1;
+  else nb.pts[physIndex(pl,s.toRel)] += pl;
+  return nb;
+}
+function violatesPrime(bd,pl){
+  var opp=-pl, owned={};
+  for(var p=0;p<24;p++){ if(owner(bd,p)===pl) owned[toRel(opp,p)]=true; }
+  var pos=[]; for(var q=0;q<24;q++){ if(owner(bd,q)===opp) pos.push(toRel(opp,q)); }
+  if(pos.length===0) return false;
+  for(var start=1;start<=19;start++){
+    var ok=true; for(var k=0;k<6;k++){ if(!owned[start+k]){ ok=false; break; } }
+    if(!ok) continue;
+    var end=start+5; if(offCount(bd,opp)>0) continue;
+    var allBehind=true; for(var j=0;j<pos.length;j++){ if(pos[j]<=end){ allBehind=false; break; } }
+    if(allBehind) return true;
+  }
+  return false;
+}
+function expand(bd,pl,pool,headUsed,headLimit,acc,out){
+  if(pool.length===0){ out.push({moves:acc.slice(),board:bd}); return; }
+  var extended=false, tried={};
+  for(var i=0;i<pool.length;i++){
+    var die=pool[i]; if(tried[die]) continue; tried[die]=1;
+    var rest=pool.slice(0,i).concat(pool.slice(i+1));
+    var subs=singleSubmoves(bd,pl,die);
+    for(var j=0;j<subs.length;j++){
+      var s=subs[j], isHead=(s.fromRel===HEAD);
+      if(isHead && headUsed+1>headLimit) continue;
+      extended=true;
+      expand(applySub(bd,pl,s),pl,rest,headUsed+(isHead?1:0),headLimit,acc.concat([s]),out);
+    }
+  }
+  if(!extended) out.push({moves:acc.slice(),board:bd});
+}
+function generate(bd,pl,dice,headLimit){
+  var doubles=dice[0]===dice[1];
+  var pool=doubles?[dice[0],dice[0],dice[0],dice[0]]:[dice[0],dice[1]];
+  var out=[]; expand(bd,pl,pool,0,headLimit,[],out);
+  var legal=out.filter(function(o){ return !violatesPrime(o.board,pl); });
+  if(legal.length===0) return [];
+  var maxLen=0; legal.forEach(function(o){ if(o.moves.length>maxLen) maxLen=o.moves.length; });
+  if(maxLen===0) return [];
+  legal=legal.filter(function(o){ return o.moves.length===maxLen; });
+  if(!doubles && maxLen===1){
+    var hi=Math.max(dice[0],dice[1]);
+    if(legal.some(function(o){ return o.moves[0].die===hi; }))
+      legal=legal.filter(function(o){ return o.moves[0].die===hi; });
+  }
+  return legal;
+}
+function headLimitFor(hasMoved,pl,dice){
+  if(!hasMoved[pl] && dice[0]===dice[1] && (dice[0]===3||dice[0]===4||dice[0]===6)) return 2;
+  return 1;
+}
+
+/* ---------- the real engine: learned evaluator + MCTS ---------- */
+var MODEL_WEIGHTS = [-0.0911, 1.9735, 2.0037, 0.8184, 0.6391, 0.6517];
+var ENGINE_VERSION = 1;
+var BOT_ITERATIONS = 350;
+var UCT_C = 1.4;
+
+function sideStats(board, pl){
+  var pipc=0, off=board.off[pl], home=0, made=0, back=0;
+  for(var p=0;p<24;p++){
+    if(owner(board,p)===pl){
+      var r=toRel(pl,p), c=Math.abs(board.pts[p]);
+      pipc+=r*c; if(r<=6) home+=c; if(c>=2) made++; if(r>=19) back+=c;
+    }
+  }
+  return {pip:pipc, off:off, home:home, made:made, back:back};
+}
+function efeatures(board, pl){
+  var m=sideStats(board,pl), o=sideStats(board,-pl);
+  return [1, (o.pip-m.pip)/167, (m.off-o.off)/15, (m.home-o.home)/15, (m.made-o.made)/12, (o.back-m.back)/15];
+}
+function epredict(f){
+  var z=0; for(var i=0;i<MODEL_WEIGHTS.length;i++) z+=MODEL_WEIGHTS[i]*f[i];
+  if(z<-60) return 0; if(z>60) return 1; return 1/(1+Math.exp(-z));
+}
+function valueWhite(board, pl){ var p=epredict(efeatures(board,pl)); var v=2*p-1; return pl===WHITE?v:-v; }
+function terminalRewardWhite(board){
+  if(board.off[WHITE]===15) return board.off[BLACK]===0?2:1;
+  if(board.off[BLACK]===15) return board.off[WHITE]===0?-2:-1;
+  return null;
+}
+function DNode(board,player,dice,headLimit){
+  this.board=board; this.player=player;
+  this.turns=generate(board,player,dice,headLimit);
+  this.children=new Array(this.turns.length).fill(null);
+  this.visits=0; this.value=0;
+}
+function CNode(board,player){ this.board=board; this.player=player; this.children={}; this.visits=0; this.value=0; }
+function selectChild(node){
+  var logN=Math.log(node.visits+1), bi=0, bs=-Infinity;
+  for(var i=0;i<node.children.length;i++){
+    var ch=node.children[i];
+    if(!ch || ch.visits===0) return i;
+    var s = node.player*(ch.value/ch.visits) + UCT_C*Math.sqrt(logN/ch.visits);
+    if(s>bs){ bs=s; bi=i; }
+  }
+  return bi;
+}
+function simDecision(node){
+  var r=terminalRewardWhite(node.board); if(r!==null){ node.visits++; node.value+=r; return r; }
+  if(node.turns.length===0){ var rw=valueWhite(node.board,-node.player); node.visits++; node.value+=rw; return rw; }
+  var idx=selectChild(node), child=node.children[idx], rew;
+  if(!child){
+    child=new CNode(node.turns[idx].board,-node.player); node.children[idx]=child;
+    rew=valueWhite(child.board,child.player); child.visits++; child.value+=rew;
+  } else { rew=simChance(child); }
+  node.visits++; node.value+=rew; return rew;
+}
+function simChance(node){
+  var r=terminalRewardWhite(node.board); if(r!==null){ node.visits++; node.value+=r; return r; }
+  var dice=[1+Math.floor(Math.random()*6), 1+Math.floor(Math.random()*6)];
+  var key=dice[0]+','+dice[1], dn=node.children[key];
+  if(!dn){ dn=new DNode(node.board,node.player,dice,1); node.children[key]=dn; }
+  var rew=simDecision(dn); node.visits++; node.value+=rew; return rew;
+}
+function mctsChoose(board,player,dice,headLimit,iters){
+  var root=new DNode(board,player,dice,headLimit);
+  if(root.turns.length===0) return null;
+  if(root.turns.length===1) return root.turns[0];
+  for(var i=0;i<iters;i++) simDecision(root);
+  var bi=0, bv=-1;
+  for(var k=0;k<root.children.length;k++){
+    var v=root.children[k]?root.children[k].visits:0;
+    if(v>bv){ bv=v; bi=k; }
+  }
+  return root.turns[bi];
+}
+function loadLatestModel(){
+  try{
+    fetch("https://raw.githubusercontent.com/vavardanyan97/long-narde-engine/main/model.json",{cache:"no-store"})
+      .then(function(r){ return r.ok?r.json():null; })
+      .then(function(m){
+        if(m && m.weights && m.weights.length===6){
+          MODEL_WEIGHTS=m.weights; ENGINE_VERSION=m.version||ENGINE_VERSION;
+          var el=document.getElementById('oppSub'); if(el) el.textContent="Black · engine v"+ENGINE_VERSION+" (trains daily)";
+        }
+      }).catch(function(){});
+  }catch(e){}
+}
+
+/* ---------- game state ---------- */
+var G;
+function newGame(){
+  G={ board:initialBoard(), turn:WHITE, dice:null, hasMoved:{}, seqs:[], prefix:[],
+      selected:null, turnStart:null, maxLen:0, animating:false };
+  G.hasMoved[WHITE]=false; G.hasMoved[BLACK]=false;
+  hideOverlay();
+  setStatus("Your turn — tap “Roll”.");
+  document.getElementById('rollBtn').disabled=false;
+  document.getElementById('undoBtn').disabled=true;
+  render();
+}
+
+/* ---------- rendering ---------- */
+var topPhys=[12,13,14,15,16,17,18,19,20,21,22,23];
+var botPhys=[11,10,9,8,7,6,5,4,3,2,1,0];
+var cellEls={};
+function buildBoard(){
+  var rt=document.getElementById('rowTop'), rb=document.getElementById('rowBot');
+  rt.innerHTML=''; rb.innerHTML='';
+  function build(row,arr,dir){
+    for(var i=0;i<12;i++){
+      if(i===6){ var bar=document.createElement('div'); bar.className='bar'; row.appendChild(bar); }
+      var phys=arr[i];
+      var cell=document.createElement('div'); cell.className='cell'; cell.dataset.phys=phys;
+      var tri=document.createElement('div'); tri.className='tri '+dir;
+      tri.style.setProperty('--p', (i%2===0?'var(--pt-light)':'var(--pt-dark)'));
+      cell.appendChild(tri);
+      var lbl=document.createElement('div'); lbl.className='lbl'; lbl.textContent=phys+1; cell.appendChild(lbl);
+      cell.addEventListener('click', function(){ onCellTap(parseInt(this.dataset.phys,10)); });
+      row.appendChild(cell);
+      cellEls[phys]={el:cell,dir:dir};
+    }
+  }
+  build(rt,topPhys,'dn'); build(rb,botPhys,'up');
+}
+function render(){
+  for(var p=0;p<24;p++){
+    var info=cellEls[p], cell=info.el, dir=info.dir;
+    cell.querySelectorAll('.chk,.badge,.dest').forEach(function(n){ n.remove(); });
+    cell.classList.remove('src','sel');
+    var v=G.board.pts[p], n=Math.abs(v); if(n===0) continue;
+    var cls=v>0?'w':'b';
+    var show=Math.min(n,5), offs=[6,28,50,72,94];
+    for(var k=0;k<show;k++){
+      var c=document.createElement('div'); c.className='chk '+cls;
+      c.style[dir==='dn'?'top':'bottom']=offs[k]+'px'; cell.appendChild(c);
+    }
+    if(n>5){
+      var b=document.createElement('div'); b.className='badge '+cls; b.textContent=n;
+      b.style[dir==='dn'?'top':'bottom']=offs[4]+'px'; cell.appendChild(b);
+    }
+  }
+  document.getElementById('offW').textContent=G.board.off[WHITE];
+  document.getElementById('offB').textContent=G.board.off[BLACK];
+  renderDice();
+  renderHighlights();
+}
+var PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function buildDie(val,isUsed,rolling){
+  var die=document.createElement('div'); die.className='die'+(isUsed?' used':'')+(rolling?' rolling':'');
+  var set=PIPS[val];
+  for(var i=0;i<9;i++){ var s=document.createElement('span'); if(set.indexOf(i)>=0) s.className='pip'; die.appendChild(s); }
+  return die;
+}
+function renderDiceValues(vals,used,rolling){
+  var el=document.getElementById('dice'); el.innerHTML='';
+  for(var d=0;d<vals.length;d++) el.appendChild(buildDie(vals[d], d<used, rolling));
+}
+function renderDice(used){
+  if(!G.dice){ document.getElementById('dice').innerHTML=''; return; }
+  if(used===undefined) used=G.prefix.length;
+  var vals = G.dice[0]===G.dice[1] ? [G.dice[0],G.dice[0],G.dice[0],G.dice[0]] : [G.dice[0],G.dice[1]];
+  renderDiceValues(vals,used,false);
+}
+function rnd6(){ return 1+Math.floor(Math.random()*6); }
+function animateRoll(done){
+  G.animating=true;
+  var i=0, ticks=13;
+  var iv=setInterval(function(){
+    renderDiceValues([rnd6(),rnd6()],0,true);
+    if(++i>=ticks){ clearInterval(iv); renderDice(0); G.animating=false; done(); }
+  },55);
+}
+function consistentSeqs(){
+  return G.seqs.filter(function(sq){
+    for(var i=0;i<G.prefix.length;i++){ if(!sameSub(G.prefix[i],sq.moves[i])) return false; }
+    return true;
+  });
+}
+function sameSub(a,b){ return a&&b&&a.fromRel===b.fromRel&&a.die===b.die&&a.kind===b.kind&&a.toRel===b.toRel; }
+function nextSubs(){ var k=G.prefix.length, cs=consistentSeqs(), out=[], seen={};
+  cs.forEach(function(sq){ var s=sq.moves[k]; if(!s) return; var key=s.fromRel+'-'+s.die+'-'+s.kind+'-'+s.toRel;
+    if(!seen[key]){ seen[key]=1; out.push(s); } }); return out; }
+function renderHighlights(){
+  document.getElementById('trayW').classList.remove('canoff');
+  document.getElementById('trayB').classList.remove('canoff');
+  if(G.turn!==WHITE || !G.dice || G.seqs.length===0) return;
+  var ns=nextSubs();
+  if(G.selected===null){
+    var srcRels={}; ns.forEach(function(s){ srcRels[s.fromRel]=1; });
+    Object.keys(srcRels).forEach(function(r){ cellEls[physIndex(WHITE,parseInt(r,10))].el.classList.add('src'); });
+  } else {
+    cellEls[physIndex(WHITE,G.selected)].el.classList.add('sel');
+    ns.forEach(function(s){
+      if(s.fromRel!==G.selected) return;
+      if(s.kind==='move'){
+        var cell=cellEls[physIndex(WHITE,s.toRel)].el, dir=cellEls[physIndex(WHITE,s.toRel)].dir;
+        var d=document.createElement('div'); d.className='dest'; cell.appendChild(d);
+      } else {
+        document.getElementById('trayW').classList.add('canoff');
+      }
+    });
+  }
+}
+
+/* ---------- interaction ---------- */
+function onCellTap(phys){
+  if(G.turn!==WHITE || !G.dice || G.seqs.length===0 || G.animating) return;
+  var ns=nextSubs();
+  var rel = owner(G.board,phys)===WHITE ? toRel(WHITE,phys) : null;
+  if(G.selected===null){
+    if(rel!==null && ns.some(function(s){ return s.fromRel===rel; })){ G.selected=rel; render(); }
+    return;
+  }
+  if(rel===G.selected){ G.selected=null; render(); return; }
+  var destRel = toRel(WHITE,phys);
+  var sub = ns.find(function(s){ return s.fromRel===G.selected && s.kind==='move' && s.toRel===destRel; });
+  if(sub){ doSub(sub); return; }
+  if(rel!==null && ns.some(function(s){ return s.fromRel===rel; })){ G.selected=rel; render(); return; }
+}
+function onTrayTap(){
+  if(G.turn!==WHITE || G.selected===null || G.animating) return;
+  var sub=nextSubs().find(function(s){ return s.fromRel===G.selected && s.kind==='off'; });
+  if(sub) doSub(sub);
+}
+function doSub(sub){
+  G.board=applySub(G.board,WHITE,sub); G.prefix.push(sub); G.selected=null;
+  render();
+  if(G.prefix.length>=G.maxLen) finishHumanTurn();
+  else setStatus("Your turn — <b>"+(G.maxLen-G.prefix.length)+"</b> move(s) left.");
+}
+function finishHumanTurn(){
+  G.hasMoved[WHITE]=true; document.getElementById('undoBtn').disabled=true;
+  if(allOff(G.board,WHITE)){ return endGame(WHITE); }
+  G.turn=BLACK; G.dice=null; G.seqs=[]; G.prefix=[]; render();
+  setStatus("Engine’s turn…");
+  setTimeout(startBotTurn, 450);
+}
+
+/* ---------- bot ---------- */
+function startBotTurn(){
+  var dice=roll(); G.dice=dice;
+  setStatus("Engine is rolling…");
+  animateRoll(function(){
+    var hl=headLimitFor(G.hasMoved,BLACK,dice);
+    G.hasMoved[BLACK]=true;
+    setStatus("Engine rolled <b>"+dice[0]+"-"+dice[1]+"</b> — thinking…");
+    setTimeout(function(){
+      var chosen=mctsChoose(G.board,BLACK,dice,hl,BOT_ITERATIONS);
+      if(!chosen){
+        setStatus("Engine rolled <b>"+dice[0]+"-"+dice[1]+"</b> — no legal move.");
+        setTimeout(afterBot, 700); return;
+      }
+      playBotSequence(chosen.moves, afterBot);
+    }, 60);
+  });
+}
+function playBotSequence(moves, done){
+  G.animating=true;
+  var i=0;
+  function step(){
+    if(i>=moves.length){ G.animating=false; done(); return; }
+    var s=moves[i];
+    G.board=applySub(G.board,BLACK,s);
+    render(); renderDice(i+1); flashMove(BLACK,s);
+    i++;
+    setTimeout(step, 620);
+  }
+  setTimeout(step, 350);
+}
+function afterBot(){
+  render();
+  if(allOff(G.board,BLACK)){ return endGame(BLACK); }
+  G.turn=WHITE; G.dice=null; G.seqs=[]; G.prefix=[]; G.animating=false;
+  setStatus("Your turn — tap “Roll”.");
+  document.getElementById('rollBtn').disabled=false;
+  render();
+}
+function flashMove(pl,s){
+  if(s.kind==='off') return;
+  var cell=cellEls[physIndex(pl,s.toRel)].el;
+  cell.classList.add('flash');
+  setTimeout(function(){ cell.classList.remove('flash'); }, 540);
+}
+
+/* ---------- turn start ---------- */
+function roll(){ return [1+Math.floor(Math.random()*6), 1+Math.floor(Math.random()*6)]; }
+function onRoll(){
+  if(G.turn!==WHITE || G.dice || G.animating) return;
+  G.dice=roll(); G.prefix=[]; G.selected=null; G.turnStart=cloneBoard(G.board);
+  document.getElementById('rollBtn').disabled=true;
+  setStatus("Rolling…");
+  animateRoll(function(){
+    G.seqs=generate(G.board,WHITE,G.dice,headLimitFor(G.hasMoved,WHITE,G.dice));
+    G.maxLen = G.seqs.length? G.seqs[0].moves.length : 0;
+    if(G.seqs.length===0){
+      setStatus("No legal move with "+G.dice[0]+"-"+G.dice[1]+" — turn passes.");
+      G.hasMoved[WHITE]=true; render();
+      G.turn=BLACK; G.dice=null; setTimeout(startBotTurn,800); return;
+    }
+    document.getElementById('undoBtn').disabled=false;
+    setStatus("Your turn — <b>"+G.maxLen+"</b> move(s) to play.");
+    render();
+  });
+}
+function onUndo(){
+  if(!G.turnStart) return;
+  G.board=cloneBoard(G.turnStart); G.prefix=[]; G.selected=null; render();
+  setStatus("Your turn — <b>"+G.maxLen+"</b> move(s) to play.");
+}
+
+/* ---------- end ---------- */
+function endGame(winner){
+  var loser=-winner, mars = G.board.off[loser]===0, youWon = winner===WHITE, pts = mars?2:1;
+  var title=document.getElementById('winTitle');
+  title.textContent = youWon ? (mars?"Mars!":"Victory") : (mars?"Mars — you lost":"Defeat");
+  title.style.color = youWon ? "var(--accent-text)" : "#e08079";
+  document.getElementById('ptsBadge').textContent = "+"+pts;
+  document.getElementById('winText').innerHTML = youWon
+    ? (mars ? "Double win — the engine bore off <b>0</b> checkers. Worth 2 points."
+            : "You won this game. Worth 1 point.")
+    : (mars ? "Mars — you bore off <b>0</b> checkers. The engine scores 2 points."
+            : "The engine won this game. Worth 1 point.");
+  document.getElementById('rScore').textContent = youWon ? "1 — 0" : "0 — 1";
+  document.getElementById('rLabel').textContent = youWon ? "GAME WON" : "GAME LOST";
+  document.getElementById('rAvaW').style.opacity = youWon ? "1" : ".65";
+  document.getElementById('rAvaB').style.opacity = youWon ? ".65" : "1";
+  document.getElementById('overlay').classList.add('show');
+}
+function hideOverlay(){ document.getElementById('overlay').classList.remove('show'); }
+
+/* ---------- ui helpers ---------- */
+function setStatus(html){ document.getElementById('status').innerHTML=html; }
+var toastT;
+function toast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(function(){ t.classList.remove('show'); },1600); }
+
+/* ---------- wire up ---------- */
+buildBoard();
+document.getElementById('rollBtn').addEventListener('click', onRoll);
+document.getElementById('undoBtn').addEventListener('click', onUndo);
+document.getElementById('newBtn').addEventListener('click', newGame);
+document.getElementById('againBtn').addEventListener('click', newGame);
+document.getElementById('trayW').addEventListener('click', onTrayTap);
+newGame();
+loadLatestModel();
+</script>
+</body>
+</html>
