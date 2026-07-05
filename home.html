@@ -145,6 +145,11 @@
       <button class="on" data-l="medium">Medium</button>
       <button data-l="hard">Hard</button>
     </div>
+    <div class="seg" id="matchseg" style="margin-top:8px">
+      <button data-m="1">1 game</button>
+      <button data-m="3">Match to 3</button>
+      <button class="on" data-m="5">Match to 5</button>
+    </div>
     <button class="btn primary" style="margin-top:12px" onclick="go('game.html')">Play</button>
   </div>
 
@@ -224,6 +229,12 @@
     badge.textContent = badgeFor(l); }
   seg.querySelectorAll('button').forEach(function(b){ b.addEventListener('click', function(){ setLevel(b.dataset.l); }); });
   (function(){ var saved='medium'; try{ saved=localStorage.getItem('narde_level')||'medium'; }catch(e){} setLevel(saved); })();
+
+  var mseg=document.getElementById('matchseg');
+  function setMatch(m){ try{ localStorage.setItem('narde_match', m); }catch(e){}
+    mseg.querySelectorAll('button').forEach(function(x){ x.classList.toggle('on', x.dataset.m===String(m)); }); }
+  mseg.querySelectorAll('button').forEach(function(b){ b.addEventListener('click', function(){ setMatch(b.dataset.m); }); });
+  (function(){ var sm='5'; try{ sm=localStorage.getItem('narde_match')||'5'; }catch(e){} setMatch(sm); })();
 </script>
 </body>
 </html>
