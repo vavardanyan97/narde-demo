@@ -343,13 +343,48 @@ function generate(bd,pl,dice,headLimit){ var doubles=dice[0]===dice[1],pool=doub
 function headLimitFor(hasMoved,pl,dice){ if(!hasMoved[pl]&&dice[0]===dice[1]&&(dice[0]===3||dice[0]===4||dice[0]===6)) return 2; return 1; }
 
 /* ================= ENGINE (brain: evaluator + MCTS) ================= */
-var MODEL_WEIGHTS=[-0.24037205350150523,1.544692363123919,0.9309269893343096,1.1549581257152013,0.14337060460457576,-0.2413430836535432], ENGINE_VERSION=15;
+var MODEL_WEIGHTS=[-0.24037205350150523,1.544692363123919,0.9309269893343096,1.1549581257152013,0.14337060460457576,-0.2413430836535432], ENGINE_VERSION=16;
 var BOT_ITERATIONS=200, UCT_C=1.4;
 function sideStats(bd,pl){ var pc=0,off=bd.off[pl],home=0,made=0,back=0; for(var p=0;p<24;p++){ if(owner(bd,p)===pl){ var r=toRel(pl,p),c=Math.abs(bd.pts[p]); pc+=r*c; if(r<=6)home+=c; if(c>=2)made++; if(r>=19)back+=c; } } return {pip:pc,off:off,home:home,made:made,back:back}; }
 function efeatures(bd,pl){ var m=sideStats(bd,pl),o=sideStats(bd,-pl); return [1,(o.pip-m.pip)/167,(m.off-o.off)/15,(m.home-o.home)/15,(m.made-o.made)/12,(o.back-m.back)/15]; }
 function epredict(f){ var z=0; for(var i=0;i<MODEL_WEIGHTS.length;i++) z+=MODEL_WEIGHTS[i]*f[i]; if(z<-60)return 0; if(z>60)return 1; return 1/(1+Math.exp(-z)); }
 function valueWhite(bd,pl){ var pr=epredict(efeatures(bd,pl)),v=2*pr-1; return pl===WHITE?v:-v; }
 function terminalRewardWhite(bd){ if(bd.off[WHITE]===15)return bd.off[BLACK]===0?2:1; if(bd.off[BLACK]===15)return bd.off[WHITE]===0?-2:-1; return null; }
+
+/* ===== Strong heuristic engine (v16): board-aware eval + 2-ply expectimax =====
+   No hitting in Long Narde, so strategy = race efficiency + walls that trap the
+   opponent's checkers. Eval rewards: checkers borne off, pip lead, home-board
+   readiness, and blocking/priming the opponent (huge when a full 6-prime traps). */
+function homeReady(bd,pl){ var c=0; for(var p=0;p<24;p++){ if(owner(bd,p)===pl && toRel(pl,p)<=6) c+=Math.abs(bd.pts[p]); } return c; }
+function blockScore(bd,pl){ var opp=-pl, myB=new Array(25).fill(0), oppAt=new Array(25).fill(0);
+  for(var p=0;p<24;p++){ var o=owner(bd,p); if(o===pl) myB[toRel(opp,p)]=1; else if(o===opp) oppAt[toRel(opp,p)]=Math.abs(bd.pts[p]); }
+  var val=0; for(var ro=2;ro<=24;ro++){ if(oppAt[ro]>0){ var run=0; for(var k=1;k<=6;k++){ if(ro-k>=1&&myB[ro-k]) run++; else break; }
+    val+=oppAt[ro]*run*0.25; if(run>=6) val+=oppAt[ro]*1.2; } }
+  return val; }
+function evalW(bd){ var s=0;
+  s += (bd.off[WHITE]-bd.off[BLACK])*3.5;
+  s += (pip(bd,BLACK)-pip(bd,WHITE))*0.055;
+  s += (blockScore(bd,WHITE)-blockScore(bd,BLACK));
+  s += (homeReady(bd,WHITE)-homeReady(bd,BLACK))*0.15;
+  return s; }
+function Vwhite(bd){ var t=terminalRewardWhite(bd); return t!==null? t*100 : evalW(bd); }
+function twoPly(bd,pl){ var opp=-pl, oppSign=(opp===WHITE)?1:-1, total=0, wsum=0;
+  for(var d1=1;d1<=6;d1++){ for(var d2=d1;d2<=6;d2++){ var w=(d1===d2)?1:2; wsum+=w;
+    var turns=generate(bd,opp,[d1,d2],1), val;
+    if(turns.length===0){ val=Vwhite(bd); }
+    else{ var bo=-Infinity, chosen=0; for(var i=0;i<turns.length;i++){ var vv=Vwhite(turns[i].board), sc=oppSign*vv; if(sc>bo){bo=sc; chosen=vv;} } val=chosen; }
+    total+=w*val; } }
+  return total/wsum; }
+function chooseBotMove(bd,pl,dice,hl){ var turns=generate(bd,pl,dice,hl);
+  if(turns.length===0) return null; if(turns.length===1) return turns[0];
+  var sign=(pl===WHITE)?1:-1;
+  var scored=turns.map(function(t){ return {t:t, s:sign*Vwhite(t.board)}; });
+  scored.sort(function(a,b){ return b.s-a.s; });
+  var K=Math.min(6,scored.length), best=scored[0].t, bestV=-Infinity;
+  for(var i=0;i<K;i++){ var t=scored[i].t, term=terminalRewardWhite(t.board), v;
+    if(term!==null) v=sign*term*100; else v=sign*twoPly(t.board,pl);
+    if(v>bestV){ bestV=v; best=t; } }
+  return best; }
 function DNode(bd,pl,dice,hl){ this.board=bd; this.player=pl; this.turns=generate(bd,pl,dice,hl); this.children=new Array(this.turns.length).fill(null); this.visits=0; this.value=0; }
 function CNode(bd,pl){ this.board=bd; this.player=pl; this.children={}; this.visits=0; this.value=0; }
 function selectChild(node){ var logN=Math.log(node.visits+1),bi=0,bs=-Infinity; for(var i=0;i<node.children.length;i++){ var ch=node.children[i]; if(!ch||ch.visits===0)return i; var s=node.player*(ch.value/ch.visits)+UCT_C*Math.sqrt(logN/ch.visits); if(s>bs){bs=s;bi=i;} } return bi; }
@@ -583,7 +618,7 @@ function startBotTurn(){
   animateRoll(function(){
     var hl=headLimitFor(G.hasMoved,BLACK,dice); G.hasMoved[BLACK]=true;
     setTimeout(function(){
-      var chosen=mctsChoose(G.board,BLACK,dice,hl,BOT_ITERATIONS);
+      var chosen=chooseBotMove(G.board,BLACK,dice,hl);
       showThinking(false);
       if(!chosen){ afterBot(); return; }
       playBotSequence(chosen.moves, afterBot);
@@ -634,7 +669,7 @@ document.getElementById('undoBtn').addEventListener('click', onUndo);
 document.getElementById('resignBtn').addEventListener('click', newGame);
 newGame();
 (function(){ var e=document.getElementById('oppSub'); if(e) e.textContent="Engine v"+ENGINE_VERSION; })();
-loadLatestModel();
+/* v16 uses the built-in board-aware evaluator + 2-ply search; no external weights fetch. */
 </script>
 </body>
 </html>
