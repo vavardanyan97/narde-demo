@@ -203,7 +203,7 @@
     <div class="av b" id="oppAv">AI</div>
     <div class="stripmid">
       <div class="striptop"><span class="nm">Narde Engine</span></div>
-      <div class="stripbot"><span class="rating" id="oppSub">Engine v1</span><span class="thinklab" id="oppThink" style="display:none">thinking…</span></div>
+      <div class="stripbot"><span class="rating" id="oppSub">Engine v15</span><span class="thinklab" id="oppThink" style="display:none">thinking…</span></div>
     </div>
     <div class="clock">—</div>
   </div>
@@ -595,6 +595,7 @@ document.getElementById('againBtn').addEventListener('click', newGame);
 document.getElementById('undoBtn').addEventListener('click', onUndo);
 document.getElementById('resignBtn').addEventListener('click', newGame);
 newGame();
+(function(){ var e=document.getElementById('oppSub'); if(e) e.textContent="Engine v"+ENGINE_VERSION; })();
 loadLatestModel();
 </script>
 </body>
