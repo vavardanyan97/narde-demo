@@ -195,7 +195,7 @@
 <div class="app">
   <div class="topbar">
     <a class="icbtn" href="home.html" aria-label="Back">‹</a>
-    <div class="tbtitle"><div class="ov">Casual · vs Engine</div><div class="sc tnum" id="score">0 — 0</div></div>
+    <div class="tbtitle"><div class="ov" id="matchlbl">Match to 5 · vs Engine</div><div class="sc tnum" id="score">0 — 0</div></div>
     <button class="icbtn" id="restartBtn" aria-label="New game">⟳</button>
   </div>
 
@@ -242,7 +242,7 @@
   </div>
 
   <div class="bottomlinks">
-    <span id="drawBtn">Offer draw</span><span class="dsep">·</span><span id="resignBtn">Resign</span><span class="dsep">·</span><span id="flagBtn" title="Tell us the engine just played a bad move">⚑ Bad bot move</span>
+    <span id="resignBtn">Resign</span><span class="dsep">·</span><span id="flagBtn" title="Tell us the engine just played a bad move">⚑ Bad bot move</span>
   </div>
 </div>
 
@@ -663,39 +663,51 @@ function showThinking(on){ document.getElementById('oppThink').style.display=on?
 
 /* ================= RESULT ================= */
 var gameOver=false, SCORE_YOU=0, SCORE_ENG=0;
-function endGame(winner){
+var MATCH_TARGET=(function(){ try{ var u=new URLSearchParams(location.search).get('to'); if(u) return Math.max(1,parseInt(u,10)||5);
+  var s=localStorage.getItem('narde_match'); return s?parseInt(s,10):5; }catch(e){ return 5; } })();
+function endGame(winner, opts){
   if(gameOver) return; gameOver=true;
   G.animating=true; G.dice=null;
   document.getElementById('overlay').classList.add('show');   // show first — can't be blocked
   showThinking(false);
   try{
-    var loser=-winner, mars=G.board.off[loser]===0, youWon=winner===WHITE, pts=mars?2:1;
+    var resign=!!(opts&&opts.resign);
+    var loser=-winner, mars = resign ? false : (G.board.off[loser]===0), youWon=winner===WHITE, pts=mars?2:1;
+    if(youWon) SCORE_YOU+=pts; else SCORE_ENG+=pts;
+    var matchOver = SCORE_YOU>=MATCH_TARGET || SCORE_ENG>=MATCH_TARGET, matchWon = SCORE_YOU>=MATCH_TARGET;
     var t=document.getElementById('winTitle');
-    t.textContent = youWon ? (mars?"Mars!":"Victory") : (mars?"Mars — you lost":"Defeat");
-    t.style.color = youWon ? "#7fdca8" : "#e08079";
+    t.textContent = matchOver ? (matchWon?"Match won!":"Match lost")
+      : youWon ? (mars?"Mars!":"Victory") : (resign?"Resigned":(mars?"Mars — you lost":"Defeat"));
+    t.style.color = (matchOver?matchWon:youWon) ? "#7fdca8" : "#e08079";
     document.getElementById('ptsBadge').textContent="+"+pts;
-    document.getElementById('winText').innerHTML = youWon
-      ? (mars?"Double win — the engine bore off <b>0</b> checkers. Worth 2 points.":"You won this game. Worth 1 point.")
+    var txt = resign && !youWon ? "You resigned — the engine takes 1 point."
+      : youWon ? (mars?"Double win — the engine bore off <b>0</b> checkers. Worth 2 points.":"You won this game. Worth 1 point.")
       : (mars?"Mars — you bore off <b>0</b> checkers. The engine scores 2 points.":"The engine won this game. Worth 1 point.");
-    document.getElementById('rScore').textContent = youWon?"1 — 0":"0 — 1";
-    document.getElementById('rLabel').textContent = youWon?"GAME WON":"GAME LOST";
+    if(matchOver) txt += matchWon ? " You win the match to "+MATCH_TARGET+"!" : " The engine wins the match to "+MATCH_TARGET+".";
+    document.getElementById('winText').innerHTML = txt;
+    document.getElementById('rScore').textContent = SCORE_YOU+" — "+SCORE_ENG;
+    document.getElementById('rLabel').textContent = matchOver ? (matchWon?"MATCH WON":"MATCH LOST") : (youWon?"GAME WON":"GAME LOST");
     document.getElementById('rAvaW').style.opacity = youWon?"1":".65";
     document.getElementById('rAvaB').style.opacity = youWon?".65":"1";
-    if(youWon) SCORE_YOU++; else SCORE_ENG++;
     var sc=document.getElementById('score'); if(sc) sc.textContent=SCORE_YOU+" — "+SCORE_ENG;
-    document.getElementById('rScore').textContent = SCORE_YOU+" — "+SCORE_ENG;
+    var ab=document.getElementById('againBtn'); if(ab) ab.textContent = matchOver ? "New match" : "Next game";
     saveResult(youWon, mars);
     saveLog(youWon, mars);
   }catch(e){}
 }
+function nextGame(){
+  if(SCORE_YOU>=MATCH_TARGET || SCORE_ENG>=MATCH_TARGET){ SCORE_YOU=0; SCORE_ENG=0; var sc=document.getElementById('score'); if(sc) sc.textContent="0 — 0"; }
+  newGame();
+}
+function resignGame(){ if(gameOver) return; if(window.confirm("Resign this game? It counts as a loss.")) endGame(BLACK,{resign:true}); }
 
 /* ================= WIRE UP ================= */
 buildBoard();
 document.getElementById('trayW').addEventListener('click', onTrayTap);
 document.getElementById('restartBtn').addEventListener('click', newGame);
-document.getElementById('againBtn').addEventListener('click', newGame);
+document.getElementById('againBtn').addEventListener('click', nextGame);
 document.getElementById('undoBtn').addEventListener('click', onUndo);
-document.getElementById('resignBtn').addEventListener('click', newGame);
+document.getElementById('resignBtn').addEventListener('click', resignGame);
 document.getElementById('flagBtn').addEventListener('click', function(){
   if(!G || !G.log) return;
   var idx=-1; for(var i=G.log.length-1;i>=0;i--){ if(G.log[i].p==='engine'){ idx=i; break; } }
@@ -705,7 +717,8 @@ document.getElementById('flagBtn').addEventListener('click', function(){
   setTimeout(function(){ b.textContent=old; b.style.color=''; }, 1600);
 });
 newGame();
-(function(){ var e=document.getElementById('oppSub'); if(e) e.textContent="Engine v"+ENGINE_VERSION+" · "+levelName(BOT_LEVEL); })();
+(function(){ var e=document.getElementById('oppSub'); if(e) e.textContent="Engine v"+ENGINE_VERSION+" · "+levelName(BOT_LEVEL);
+  var m=document.getElementById('matchlbl'); if(m) m.textContent="Match to "+MATCH_TARGET+" · "+levelName(BOT_LEVEL); })();
 /* v16 uses the built-in board-aware evaluator + 2-ply search; no external weights fetch. */
 </script>
 </body>

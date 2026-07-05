@@ -113,14 +113,14 @@
     <div class="avatar">R<div class="on"></div></div>
   </div>
 
-  <div class="card resume row" onclick="go('game.html')">
-    <div class="ava-sm">A</div>
+  <a class="card resume row" id="resumeCard" href="review.html" style="display:none;text-decoration:none;color:inherit">
+    <div class="ava-sm">N</div>
     <div style="flex:1">
-      <div class="t">Resume · vs Aram H.</div>
-      <div class="s">Your move · 2–1</div>
+      <div class="t" id="resTitle">Last game</div>
+      <div class="s" id="resSub"></div>
     </div>
     <div class="chev">›</div>
-  </div>
+  </a>
 
   <div class="hero">
     <div class="ov">Ranked</div>
@@ -193,6 +193,17 @@
       av.childNodes[0].nodeValue = name.charAt(0).toUpperCase();
       av.style.cursor = "pointer";
       av.addEventListener("click", function(){ go("profile.html"); });
+      try {
+        var lg = await sb.from("games").select("result,is_mars,rating_delta").eq("user_id", uid)
+          .order("created_at", { ascending: false }).limit(1);
+        if (lg.data && lg.data.length) {
+          var g = lg.data[0], won = g.result === "win";
+          document.getElementById("resTitle").textContent = (won ? "Won" : "Lost") + " vs Narde Engine" + (g.is_mars ? " · Mars" : "");
+          var d = g.rating_delta > 0 ? "+" + g.rating_delta : ("" + (g.rating_delta || 0));
+          document.getElementById("resSub").textContent = "Last game · " + d + " rating · tap to review";
+          document.getElementById("resumeCard").style.display = "flex";
+        }
+      } catch (e) {}
     } else {
       document.querySelector(".rate .v").textContent = "—";
       av.childNodes[0].nodeValue = "G";
