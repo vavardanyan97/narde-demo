@@ -306,7 +306,7 @@ function generate(bd,pl,dice,headLimit){ var doubles=dice[0]===dice[1],pool=doub
 function headLimitFor(hasMoved,pl,dice){ if(!hasMoved[pl]&&dice[0]===dice[1]&&(dice[0]===3||dice[0]===4||dice[0]===6)) return 2; return 1; }
 
 /* ================= ENGINE (brain: evaluator + MCTS) ================= */
-var MODEL_WEIGHTS=[-0.0911,1.9735,2.0037,0.8184,0.6391,0.6517], ENGINE_VERSION=1;
+var MODEL_WEIGHTS=[-0.24037205350150523,1.544692363123919,0.9309269893343096,1.1549581257152013,0.14337060460457576,-0.2413430836535432], ENGINE_VERSION=15;
 var BOT_ITERATIONS=200, UCT_C=1.4;
 function sideStats(bd,pl){ var pc=0,off=bd.off[pl],home=0,made=0,back=0; for(var p=0;p<24;p++){ if(owner(bd,p)===pl){ var r=toRel(pl,p),c=Math.abs(bd.pts[p]); pc+=r*c; if(r<=6)home+=c; if(c>=2)made++; if(r>=19)back+=c; } } return {pip:pc,off:off,home:home,made:made,back:back}; }
 function efeatures(bd,pl){ var m=sideStats(bd,pl),o=sideStats(bd,-pl); return [1,(o.pip-m.pip)/167,(m.off-o.off)/15,(m.home-o.home)/15,(m.made-o.made)/12,(o.back-m.back)/15]; }
