@@ -266,8 +266,45 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
+/* ================= ACCOUNTS (Supabase) ================= */
+var SB_URL="https://seisnfpeyptawraxagvb.supabase.co";
+var SB_KEY="sb_publishable_WAmKFRa_cGn-Jl-5dHed5w_b_7ll990";
+var sb = window.supabase ? window.supabase.createClient(SB_URL, SB_KEY) : null;
+var SB_UID=null;
+var ENGINE_RATING=1600;
+if(sb){ sb.auth.getSession().then(function(r){
+  if(r.data && r.data.session){ SB_UID=r.data.session.user.id;
+    sb.from('profiles').select('username,rating').eq('id',SB_UID).single().then(function(p){
+      if(p.data){ var e=document.querySelector('#youbar .rating'); if(e && p.data.rating!=null) e.textContent=p.data.rating;
+        var nm=document.querySelector('#youbar .nm'); if(nm && p.data.username) nm.textContent=p.data.username; }
+    });
+  }
+}); }
+async function saveResult(youWon, mars){
+  if(!sb || !SB_UID) return;
+  try{
+    var pr = await sb.from('profiles').select('*').eq('id',SB_UID).single();
+    var p = pr.data; if(!p) return;
+    var expected = 1/(1+Math.pow(10,(ENGINE_RATING - p.rating)/400));
+    var score = youWon?1:0, K=24;
+    var delta = Math.round(K*(score-expected)*(mars?1.25:1));
+    var newRating = p.rating + delta;
+    var peak = Math.max(p.peak_rating||p.rating, newRating);
+    var streak = youWon ? (p.streak||0)+1 : 0;
+    await sb.from('profiles').update({
+      rating:newRating, peak_rating:peak, games:(p.games||0)+1,
+      wins:(p.wins||0)+(youWon?1:0), losses:(p.losses||0)+(youWon?0:1),
+      mars:(p.mars||0)+((mars&&youWon)?1:0), streak:streak
+    }).eq('id',SB_UID);
+    await sb.from('games').insert({
+      user_id:SB_UID, opponent:'Narde Engine v'+ENGINE_VERSION,
+      result:youWon?'win':'loss', is_mars:mars, rating_delta:delta, new_rating:newRating
+    });
+  }catch(e){}
+}
 /* ================= ENGINE (rules) ================= */
 var WHITE=1, BLACK=-1, HEAD=24;
 function physIndex(pl,rel){ return pl===WHITE?rel-1:((rel-1+12)%24); }
@@ -584,6 +621,7 @@ function endGame(winner){
     if(youWon) SCORE_YOU++; else SCORE_ENG++;
     var sc=document.getElementById('score'); if(sc) sc.textContent=SCORE_YOU+" — "+SCORE_ENG;
     document.getElementById('rScore').textContent = SCORE_YOU+" — "+SCORE_ENG;
+    saveResult(youWon, mars);
   }catch(e){}
 }
 

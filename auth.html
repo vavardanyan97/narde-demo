@@ -142,7 +142,12 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+  var SB_URL = "https://seisnfpeyptawraxagvb.supabase.co";
+  var SB_KEY = "sb_publishable_WAmKFRa_cGn-Jl-5dHed5w_b_7ll990";
+  var sb = window.supabase.createClient(SB_URL, SB_KEY);
+
   var mode = "signin";
   var tabs = document.querySelectorAll(".tab");
   var fName = document.getElementById("f-name");
@@ -171,18 +176,62 @@
   var toast = document.getElementById("toast"), tT;
   function showToast(msg){
     toast.textContent = msg; toast.classList.add("show");
-    clearTimeout(tT); tT = setTimeout(function(){ toast.classList.remove("show"); }, 2600);
+    clearTimeout(tT); tT = setTimeout(function(){ toast.classList.remove("show"); }, 3200);
   }
 
-  // Demo flow: accounts backend isn't connected yet, so for now every entry
-  // point opens the app (Home). Real auth gets wired in when we add the backend.
-  function enter(){ window.location.href = "home.html"; }
+  function go(){ window.location.href = "home.html"; }
+  function busy(on){
+    submit.disabled = on; submit.style.opacity = on ? ".7" : "1";
+    submit.textContent = on ? "Please wait…" : (mode === "signup" ? "Create account" : "Sign in");
+  }
 
-  document.getElementById("form").addEventListener("submit", function(e){
-    e.preventDefault(); enter();
+  // Already signed in? Skip straight to Home.
+  sb.auth.getSession().then(function(r){ if (r.data && r.data.session) window.location.replace("home.html"); });
+
+  document.getElementById("form").addEventListener("submit", async function(e){
+    e.preventDefault();
+    var email = document.getElementById("email").value.trim();
+    var password = document.getElementById("pass").value;
+    if (!email) { showToast("Enter your email"); return; }
+    if (password.length < 6) { showToast("Password must be at least 6 characters"); return; }
+    busy(true);
+    try {
+      if (mode === "signup") {
+        var name = document.getElementById("name").value.trim();
+        var confirm = document.getElementById("confirm").value;
+        if (password !== confirm) { showToast("Passwords don't match"); busy(false); return; }
+        var r = await sb.auth.signUp({ email: email, password: password,
+          options: { data: { username: name || email.split("@")[0] } } });
+        if (r.error) { showToast(r.error.message); busy(false); return; }
+        if (!r.data.session) { showToast("Account created — please sign in"); setMode("signin"); busy(false); return; }
+        go();
+      } else {
+        var r2 = await sb.auth.signInWithPassword({ email: email, password: password });
+        if (r2.error) { showToast(r2.error.message); busy(false); return; }
+        go();
+      }
+    } catch (err) { showToast("Something went wrong — please try again"); busy(false); }
   });
-  document.getElementById("google").addEventListener("click", enter);
-  document.getElementById("guest").addEventListener("click", enter);
+
+  document.getElementById("google").addEventListener("click", async function(){
+    try {
+      var r = await sb.auth.signInWithOAuth({ provider: "google",
+        options: { redirectTo: location.origin + "/home.html" } });
+      if (r.error) showToast("Google sign-in isn't set up yet — use email or guest for now");
+    } catch (e) { showToast("Google sign-in isn't set up yet — use email or guest for now"); }
+  });
+
+  document.getElementById("guest").addEventListener("click", function(){
+    window.location.href = "home.html?guest=1";
+  });
+
+  document.getElementById("forgot").addEventListener("click", async function(e){
+    e.preventDefault();
+    var email = document.getElementById("email").value.trim();
+    if (!email) { showToast("Enter your email first, then tap Forgot"); return; }
+    var r = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + "/auth.html" });
+    showToast(r.error ? r.error.message : "Password reset email sent (if the address exists)");
+  });
 </script>
 </body>
 </html>

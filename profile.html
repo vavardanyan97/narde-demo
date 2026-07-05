@@ -92,7 +92,7 @@
   <div class="sec">Recent games</div>
   <div class="glist" id="glist"></div>
 
-  <button class="btn">Settings</button>
+  <button class="btn" id="signout">Sign out</button>
 </div>
 
 <div class="nav">
@@ -102,24 +102,66 @@
   <a class="on" href="profile.html"><span class="nic"></span>Profile</a>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  var games = [
-    ["A","Aram H.","Rated · Mars","win","+28"],
-    ["N","Narde Engine","Lvl 8 · Casual","win","—"],
-    ["M","Mehdi R.","Rated · 5–3","loss","−14"],
-    ["G","Giorgos P.","Rated · 5–2","win","+19"],
-    ["E","Elnur Q.","Rated · 3–5","loss","−12"]
-  ];
-  var html="";
-  games.forEach(function(g){
-    var w = g[3]==="win";
-    html += '<a class="grow" href="review.html">'+
-      '<div class="gava">'+g[0]+'</div>'+
-      '<div class="gmid"><div class="o">'+g[1]+'</div><div class="m">'+g[2]+'</div></div>'+
-      '<div class="res"><div class="'+(w?"w":"l")+'">'+(w?"Win":"Loss")+'</div>'+
-      '<div class="d tnum">'+g[4]+'</div></div></a>';
+  var SB_URL = "https://seisnfpeyptawraxagvb.supabase.co";
+  var SB_KEY = "sb_publishable_WAmKFRa_cGn-Jl-5dHed5w_b_7ll990";
+  var sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+  function fmtDate(iso){
+    var d = new Date(iso), now = new Date();
+    var days = Math.floor((now - d) / 86400000);
+    if (days <= 0) return "Today";
+    if (days === 1) return "Yesterday";
+    if (days < 7) return days + " days ago";
+    return d.toLocaleDateString();
+  }
+
+  async function initProfile(){
+    var s = await sb.auth.getSession();
+    var session = s.data && s.data.session;
+    if (!session) { window.location.replace("auth.html"); return; }
+    var uid = session.user.id;
+
+    var pr = await sb.from("profiles").select("*").eq("id", uid).single();
+    var p = pr.data || {};
+    var name = p.username || (session.user.email || "Player").split("@")[0];
+    document.querySelector(".avatar").textContent = name.charAt(0).toUpperCase();
+    document.querySelector(".name").innerHTML = name + (p.country ? ' <span class="flag">' + p.country + '</span>' : '');
+    document.querySelector(".rating").innerHTML = 'Rating <b class="tnum">' + (p.rating != null ? p.rating : 1500) + '</b> · peak ' + (p.peak_rating != null ? p.peak_rating : (p.rating != null ? p.rating : 1500));
+
+    var games = p.games || 0, wins = p.wins || 0;
+    var winRate = games > 0 ? Math.round((wins / games) * 100) + "%" : "—";
+    var stats = document.querySelectorAll(".stats .stat .v");
+    if (stats[0]) stats[0].textContent = games;
+    if (stats[1]) stats[1].textContent = winRate;
+    if (stats[2]) stats[2].textContent = p.mars || 0;
+    if (stats[3]) stats[3].textContent = p.streak || 0;
+
+    var gr = await sb.from("games").select("*").eq("user_id", uid).order("created_at", { ascending: false }).limit(10);
+    var rows = gr.data || [];
+    var list = document.getElementById("glist");
+    if (!rows.length) {
+      list.innerHTML = '<div style="padding:18px;text-align:center;color:var(--muted);font-size:13px;font-weight:600">No games yet — play the engine to start your history.</div>';
+    } else {
+      list.innerHTML = rows.map(function(g){
+        var w = g.result === "win";
+        var delta = g.rating_delta > 0 ? "+" + g.rating_delta : (g.rating_delta || 0);
+        return '<a class="grow" href="review.html">' +
+          '<div class="gava">N</div>' +
+          '<div class="gmid"><div class="o">' + (g.opponent || "Narde Engine") + '</div>' +
+          '<div class="m">' + (g.is_mars ? "Mars · " : "") + fmtDate(g.created_at) + '</div></div>' +
+          '<div class="res"><div class="' + (w ? "w" : "l") + '">' + (w ? "Win" : "Loss") + '</div>' +
+          '<div class="d tnum">' + delta + '</div></div></a>';
+      }).join("");
+    }
+  }
+  initProfile();
+
+  document.getElementById("signout").addEventListener("click", async function(){
+    await sb.auth.signOut();
+    window.location.href = "auth.html";
   });
-  document.getElementById("glist").innerHTML = html;
 </script>
 </body>
 </html>

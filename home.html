@@ -172,7 +172,36 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+  var SB_URL = "https://seisnfpeyptawraxagvb.supabase.co";
+  var SB_KEY = "sb_publishable_WAmKFRa_cGn-Jl-5dHed5w_b_7ll990";
+  var sb = window.supabase.createClient(SB_URL, SB_KEY);
+  var isGuest = new URLSearchParams(location.search).get("guest") === "1";
+
+  async function initHome(){
+    var s = await sb.auth.getSession();
+    var session = s.data && s.data.session;
+    if (!session && !isGuest) { window.location.replace("auth.html"); return; }
+    var av = document.querySelector(".avatar");
+    if (session) {
+      var uid = session.user.id;
+      var p = await sb.from("profiles").select("username,rating").eq("id", uid).single();
+      var prof = p.data || {};
+      var name = prof.username || (session.user.email || "Player").split("@")[0];
+      document.querySelector(".rate .v").textContent = (prof.rating != null ? prof.rating : 1500);
+      av.childNodes[0].nodeValue = name.charAt(0).toUpperCase();
+      av.style.cursor = "pointer";
+      av.addEventListener("click", function(){ go("profile.html"); });
+    } else {
+      document.querySelector(".rate .v").textContent = "—";
+      av.childNodes[0].nodeValue = "G";
+      av.style.cursor = "pointer";
+      av.addEventListener("click", function(){ go("auth.html"); });
+    }
+  }
+  initHome();
+
   function go(url){ window.location.href = url; }
   var tT, te=document.getElementById('toast');
   function toast(m){ te.textContent=m; te.classList.add('show'); clearTimeout(tT);
