@@ -141,9 +141,9 @@
       <div class="lvl" id="lvlBadge">8</div>
     </div>
     <div class="seg" id="seg">
-      <button data-l="Easy">Easy</button>
-      <button class="on" data-l="Lvl 8">Lvl 8</button>
-      <button data-l="Max">Max</button>
+      <button data-l="easy">Easy</button>
+      <button class="on" data-l="medium">Medium</button>
+      <button data-l="hard">Hard</button>
     </div>
     <button class="btn primary" style="margin-top:12px" onclick="go('game.html')">Play</button>
   </div>
@@ -207,13 +207,12 @@
   function toast(m){ te.textContent=m; te.classList.add('show'); clearTimeout(tT);
     tT=setTimeout(function(){ te.classList.remove('show'); },2600); }
   var seg=document.getElementById('seg'), badge=document.getElementById('lvlBadge');
-  seg.querySelectorAll('button').forEach(function(b){
-    b.addEventListener('click', function(){
-      seg.querySelectorAll('button').forEach(function(x){x.classList.remove('on');});
-      b.classList.add('on');
-      badge.textContent = b.dataset.l==='Easy'?'1':(b.dataset.l==='Max'?'★':'8');
-    });
-  });
+  function badgeFor(l){ return l==='easy'?'E':(l==='hard'?'H':'M'); }
+  function setLevel(l){ try{ localStorage.setItem('narde_level', l); }catch(e){}
+    seg.querySelectorAll('button').forEach(function(x){ x.classList.toggle('on', x.dataset.l===l); });
+    badge.textContent = badgeFor(l); }
+  seg.querySelectorAll('button').forEach(function(b){ b.addEventListener('click', function(){ setLevel(b.dataset.l); }); });
+  (function(){ var saved='medium'; try{ saved=localStorage.getItem('narde_level')||'medium'; }catch(e){} setLevel(saved); })();
 </script>
 </body>
 </html>

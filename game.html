@@ -360,6 +360,9 @@ function headLimitFor(hasMoved,pl,dice){ if(!hasMoved[pl]&&dice[0]===dice[1]&&(d
 /* ================= ENGINE (brain: evaluator + MCTS) ================= */
 var MODEL_WEIGHTS=[-0.24037205350150523,1.544692363123919,0.9309269893343096,1.1549581257152013,0.14337060460457576,-0.2413430836535432], ENGINE_VERSION=16;
 var BOT_ITERATIONS=200, UCT_C=1.4;
+var BOT_LEVEL=(function(){ try{ var u=new URLSearchParams(location.search).get('lvl'); if(u) return u;
+  var s=localStorage.getItem('narde_level'); return s||'medium'; }catch(e){ return 'medium'; } })();
+function levelName(l){ return l==='easy'?'Easy':(l==='hard'?'Hard':'Medium'); }
 function sideStats(bd,pl){ var pc=0,off=bd.off[pl],home=0,made=0,back=0; for(var p=0;p<24;p++){ if(owner(bd,p)===pl){ var r=toRel(pl,p),c=Math.abs(bd.pts[p]); pc+=r*c; if(r<=6)home+=c; if(c>=2)made++; if(r>=19)back+=c; } } return {pip:pc,off:off,home:home,made:made,back:back}; }
 function efeatures(bd,pl){ var m=sideStats(bd,pl),o=sideStats(bd,-pl); return [1,(o.pip-m.pip)/167,(m.off-o.off)/15,(m.home-o.home)/15,(m.made-o.made)/12,(o.back-m.back)/15]; }
 function epredict(f){ var z=0; for(var i=0;i<MODEL_WEIGHTS.length;i++) z+=MODEL_WEIGHTS[i]*f[i]; if(z<-60)return 0; if(z>60)return 1; return 1/(1+Math.exp(-z)); }
@@ -393,8 +396,17 @@ function twoPly(bd,pl){ var opp=-pl, oppSign=(opp===WHITE)?1:-1, total=0, wsum=0
 function chooseBotMove(bd,pl,dice,hl){ var turns=generate(bd,pl,dice,hl);
   if(turns.length===0) return null; if(turns.length===1) return turns[0];
   var sign=(pl===WHITE)?1:-1;
+  /* EASY: plays loosely — often a random legal move, else one of its top few.  */
+  if(BOT_LEVEL==='easy'){
+    if(Math.random()<0.55) return turns[(Math.random()*turns.length)|0];
+    var se=turns.map(function(t){ return {t:t, s:sign*Vwhite(t.board)}; }).sort(function(a,b){ return b.s-a.s; });
+    var k=Math.min(3,se.length); return se[(Math.random()*k)|0].t;
+  }
   var scored=turns.map(function(t){ return {t:t, s:sign*Vwhite(t.board)}; });
   scored.sort(function(a,b){ return b.s-a.s; });
+  /* MEDIUM: solid but no look-ahead (picks the best resulting position).       */
+  if(BOT_LEVEL==='medium') return scored[0].t;
+  /* HARD: full 2-ply expectimax over the top candidates (strongest).           */
   var K=Math.min(6,scored.length), best=scored[0].t, bestV=-Infinity;
   for(var i=0;i<K;i++){ var t=scored[i].t, term=terminalRewardWhite(t.board), v;
     if(term!==null) v=sign*term*100; else v=sign*twoPly(t.board,pl);
@@ -693,7 +705,7 @@ document.getElementById('flagBtn').addEventListener('click', function(){
   setTimeout(function(){ b.textContent=old; b.style.color=''; }, 1600);
 });
 newGame();
-(function(){ var e=document.getElementById('oppSub'); if(e) e.textContent="Engine v"+ENGINE_VERSION; })();
+(function(){ var e=document.getElementById('oppSub'); if(e) e.textContent="Engine v"+ENGINE_VERSION+" · "+levelName(BOT_LEVEL); })();
 /* v16 uses the built-in board-aware evaluator + 2-ply search; no external weights fetch. */
 </script>
 </body>
