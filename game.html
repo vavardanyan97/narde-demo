@@ -242,7 +242,7 @@
   </div>
 
   <div class="bottomlinks">
-    <span id="drawBtn">Offer draw</span><span class="dsep">·</span><span id="resignBtn">Resign</span>
+    <span id="drawBtn">Offer draw</span><span class="dsep">·</span><span id="resignBtn">Resign</span><span class="dsep">·</span><span id="flagBtn" title="Tell us the engine just played a bad move">⚑ Bad bot move</span>
   </div>
 </div>
 
@@ -283,6 +283,21 @@ if(sb){ sb.auth.getSession().then(function(r){
     });
   }
 }); }
+function logTurn(player, dice, moves){
+  if(!G || !G.log) return;
+  G.log.push({ p: player===WHITE?'you':'engine', d: dice?dice.slice():[],
+    m: (moves||[]).map(function(s){ return {f:s.fromRel,t:s.toRel,die:s.die,k:s.kind}; }) });
+}
+async function saveLog(youWon, mars){
+  if(!sb || !SB_UID || !G || !G.log || !G.log.length) return;
+  try{
+    await sb.from('game_logs').insert({
+      user_id: SB_UID, engine_version: ENGINE_VERSION,
+      result: youWon?'win':'loss', is_mars: mars,
+      turns: G.log, flags: G.flags||[]
+    });
+  }catch(e){}
+}
 async function saveResult(youWon, mars){
   if(!sb || !SB_UID) return;
   try{
@@ -552,8 +567,8 @@ function onTrayTap(){
 function doChain(chain){
   for(var i=0;i<chain.length;i++){ G.board=applySub(G.board,WHITE,chain[i]); G.prefix.push(chain[i]); }
   G.selected=null; render();
-  if(allOff(G.board,WHITE)){ return endGame(WHITE); }
-  if(G.prefix.length>=G.maxLen) finishHumanTurn();
+  if(allOff(G.board,WHITE)){ logTurn(WHITE,G.dice,G.prefix); return endGame(WHITE); }
+  if(G.prefix.length>=G.maxLen){ logTurn(WHITE,G.dice,G.prefix); finishHumanTurn(); }
 }
 
 /* ================= DRAG & DROP ================= */
@@ -599,7 +614,7 @@ document.addEventListener('pointercancel', function(){ if(drag&&drag.ghost) drag
 /* ================= FLOW ================= */
 var G;
 function roll(){ return [rnd6(),rnd6()]; }
-function newGame(){ G={board:initialBoard(),turn:WHITE,dice:null,hasMoved:{},seqs:[],prefix:[],selected:null,turnStart:null,maxLen:0,animating:false};
+function newGame(){ G={board:initialBoard(),turn:WHITE,dice:null,hasMoved:{},seqs:[],prefix:[],selected:null,turnStart:null,maxLen:0,animating:false,log:[],flags:[]};
   G.hasMoved[WHITE]=false; G.hasMoved[BLACK]=false; gameOver=false; document.getElementById('overlay').classList.remove('show'); showThinking(false); render(); setTimeout(maybeAutoRoll,550); }
 function onRoll(){
   if(G.turn!==WHITE || G.dice || G.animating) return;
@@ -607,7 +622,7 @@ function onRoll(){
   animateRoll(function(){
     G.seqs=generate(G.board,WHITE,G.dice,headLimitFor(G.hasMoved,WHITE,G.dice));
     G.maxLen=G.seqs.length?G.seqs[0].moves.length:0;
-    if(G.seqs.length===0){ G.hasMoved[WHITE]=true; G.turn=BLACK; G.dice=null; render(); setTimeout(startBotTurn,700); return; }
+    if(G.seqs.length===0){ logTurn(WHITE,G.dice,[]); G.hasMoved[WHITE]=true; G.turn=BLACK; G.dice=null; render(); setTimeout(startBotTurn,700); return; }
     render();
   });
 }
@@ -620,7 +635,8 @@ function startBotTurn(){
     setTimeout(function(){
       var chosen=chooseBotMove(G.board,BLACK,dice,hl);
       showThinking(false);
-      if(!chosen){ afterBot(); return; }
+      if(!chosen){ logTurn(BLACK,dice,[]); afterBot(); return; }
+      logTurn(BLACK,dice,chosen.moves);
       playBotSequence(chosen.moves, afterBot);
     }, 60);
   });
@@ -657,6 +673,7 @@ function endGame(winner){
     var sc=document.getElementById('score'); if(sc) sc.textContent=SCORE_YOU+" — "+SCORE_ENG;
     document.getElementById('rScore').textContent = SCORE_YOU+" — "+SCORE_ENG;
     saveResult(youWon, mars);
+    saveLog(youWon, mars);
   }catch(e){}
 }
 
@@ -667,6 +684,14 @@ document.getElementById('restartBtn').addEventListener('click', newGame);
 document.getElementById('againBtn').addEventListener('click', newGame);
 document.getElementById('undoBtn').addEventListener('click', onUndo);
 document.getElementById('resignBtn').addEventListener('click', newGame);
+document.getElementById('flagBtn').addEventListener('click', function(){
+  if(!G || !G.log) return;
+  var idx=-1; for(var i=G.log.length-1;i>=0;i--){ if(G.log[i].p==='engine'){ idx=i; break; } }
+  if(idx<0) return;
+  if(G.flags.indexOf(idx)<0) G.flags.push(idx);
+  var b=this; var old=b.textContent; b.textContent='✓ Flagged — thanks'; b.style.color='#7fdca8';
+  setTimeout(function(){ b.textContent=old; b.style.color=''; }, 1600);
+});
 newGame();
 (function(){ var e=document.getElementById('oppSub'); if(e) e.textContent="Engine v"+ENGINE_VERSION; })();
 /* v16 uses the built-in board-aware evaluator + 2-ply search; no external weights fetch. */
