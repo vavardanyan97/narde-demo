@@ -358,6 +358,12 @@ var BOT_ITERATIONS=200, UCT_C=1.4;
 var BOT_LEVEL=(function(){ try{ var u=new URLSearchParams(location.search).get('lvl'); if(u) return u;
   var s=localStorage.getItem('narde_level'); return s||'medium'; }catch(e){ return 'medium'; } })();
 function levelName(l){ return l==='easy'?'Easy':(l==='hard'?'Hard':'Medium'); }
+/* Exact bear-off database (perfect endgame play). Loaded asynchronously; until
+   it's available the bot simply uses its heuristic — no errors either way. */
+var BEAROFF=null;
+fetch('bearoff.json').then(function(r){ return r.ok?r.json():null; }).then(function(j){ BEAROFF=j; }).catch(function(){});
+function homeStateKey(bd,pl){ var s=[]; for(var r=1;r<=6;r++){ var c=bd.pts[physIndex(pl,r)]*pl; s.push(c>0?c:0); } return s.join(','); }
+function bestBearoffTurn(turns,pl){ var bb=null, be=Infinity; for(var i=0;i<turns.length;i++){ var e=BEAROFF[homeStateKey(turns[i].board,pl)]; if(e!==undefined && e<be){ be=e; bb=turns[i]; } } return bb; }
 function sideStats(bd,pl){ var pc=0,off=bd.off[pl],home=0,made=0,back=0; for(var p=0;p<24;p++){ if(owner(bd,p)===pl){ var r=toRel(pl,p),c=Math.abs(bd.pts[p]); pc+=r*c; if(r<=6)home+=c; if(c>=2)made++; if(r>=19)back+=c; } } return {pip:pc,off:off,home:home,made:made,back:back}; }
 function efeatures(bd,pl){ var m=sideStats(bd,pl),o=sideStats(bd,-pl); return [1,(o.pip-m.pip)/167,(m.off-o.off)/15,(m.home-o.home)/15,(m.made-o.made)/12,(o.back-m.back)/15]; }
 function epredict(f){ var z=0; for(var i=0;i<MODEL_WEIGHTS.length;i++) z+=MODEL_WEIGHTS[i]*f[i]; if(z<-60)return 0; if(z>60)return 1; return 1/(1+Math.exp(-z)); }
@@ -397,6 +403,9 @@ function chooseBotMove(bd,pl,dice,hl){ var turns=generate(bd,pl,dice,hl);
     var se=turns.map(function(t){ return {t:t, s:sign*Vwhite(t.board)}; }).sort(function(a,b){ return b.s-a.s; });
     var k=Math.min(3,se.length); return se[(Math.random()*k)|0].t;
   }
+  /* Perfect endgame: once all checkers are home, play straight from the exact
+     bear-off database (medium + hard). */
+  if(BEAROFF && canBearOff(bd,pl)){ var bo=bestBearoffTurn(turns,pl); if(bo) return bo; }
   var scored=turns.map(function(t){ return {t:t, s:sign*Vwhite(t.board)}; });
   scored.sort(function(a,b){ return b.s-a.s; });
   /* MEDIUM: solid but no look-ahead (picks the best resulting position).       */
