@@ -300,24 +300,19 @@ async function saveLog(youWon, mars){
 }
 async function saveResult(youWon, mars){
   if(!sb || !SB_UID) return;
+  // Rating + stats are computed and written SERVER-SIDE (see
+  // supabase_ratings_fix.sql). The client only reports the outcome; it can no
+  // longer forge a rating, win count, or streak. Opponent strength (and thus
+  // rating change) is set on the server from the difficulty level.
   try{
-    var pr = await sb.from('profiles').select('*').eq('id',SB_UID).single();
-    var p = pr.data; if(!p) return;
-    var expected = 1/(1+Math.pow(10,(ENGINE_RATING - p.rating)/400));
-    var score = youWon?1:0, K=24;
-    var delta = Math.round(K*(score-expected)*(mars?1.25:1));
-    var newRating = p.rating + delta;
-    var peak = Math.max(p.peak_rating||p.rating, newRating);
-    var streak = youWon ? (p.streak||0)+1 : 0;
-    await sb.from('profiles').update({
-      rating:newRating, peak_rating:peak, games:(p.games||0)+1,
-      wins:(p.wins||0)+(youWon?1:0), losses:(p.losses||0)+(youWon?0:1),
-      mars:(p.mars||0)+((mars&&youWon)?1:0), streak:streak
-    }).eq('id',SB_UID);
-    await sb.from('games').insert({
-      user_id:SB_UID, opponent:'Narde Engine v'+ENGINE_VERSION,
-      result:youWon?'win':'loss', is_mars:mars, rating_delta:delta, new_rating:newRating
+    var res = await sb.rpc('submit_game_result', {
+      p_won: !!youWon, p_mars: !!mars,
+      p_level: BOT_LEVEL, p_engine_version: ENGINE_VERSION
     });
+    if(res && res.data){
+      var e=document.querySelector('#youbar .rating');
+      if(e && res.data.new_rating!=null) e.textContent=res.data.new_rating;
+    }
   }catch(e){}
 }
 /* ================= ENGINE (rules) ================= */
