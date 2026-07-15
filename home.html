@@ -52,18 +52,24 @@
   .hero{border-radius:20px;padding:18px;margin-bottom:14px;
     background:linear-gradient(160deg,#234436,#16241e);border:1px solid rgba(70,172,121,.28)}
   .hero .ov{color:var(--accent-text)}
-  .hero h2{margin:6px 0 4px;font-size:24px;font-weight:800;letter-spacing:-.02em}
-  .hero p{margin:0 0 14px;font-size:13px;font-weight:600;color:var(--text2)}
+  .hero h2{margin:5px 0 2px;font-size:24px;font-weight:800;letter-spacing:-.02em}
+  .hero p{margin:6px 0 12px;font-size:13px;font-weight:600;color:var(--text2)}
   .btn{width:100%;height:54px;border-radius:16px;border:none;font-family:inherit;font-size:16px;
     font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
     transition:transform .12s}
   .btn:active{transform:scale(.985)}
   .btn.primary{background:linear-gradient(180deg,#54bd87,#3f9d6e);color:var(--on-accent);
     box-shadow:0 10px 24px rgba(70,172,121,.3)}
+  .btn.sub{background:var(--surface2);color:var(--text);border:1px solid var(--border);box-shadow:none}
   .tag{font-size:12px;font-weight:700;opacity:.8}
-  .online{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:#8fae9e;margin-top:12px}
+  .online{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:#8fae9e;margin-top:2px}
   .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.8s infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .joinrow{display:flex;gap:10px;margin-top:10px}
+  .joinrow input{flex:1;height:46px;border-radius:12px;border:1px solid var(--border);background:rgba(0,0,0,.25);
+    color:var(--text);font-size:16px;padding:0 14px;letter-spacing:3px;text-transform:uppercase;font-family:inherit}
+  .joinrow .jbtn{width:90px;height:46px;border-radius:12px;border:none;background:var(--accent);color:#0e1411;
+    font-weight:800;font-family:inherit;cursor:pointer;font-size:15px}
 
   /* engine card */
   .engine{margin-bottom:14px}
@@ -74,14 +80,6 @@
   .seg button{flex:1;height:40px;border-radius:11px;border:1px solid var(--border);background:var(--surface2);
     color:var(--text2);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
   .seg button.on{background:rgba(70,172,121,.16);border-color:var(--accent);color:var(--accent-text)}
-
-  /* tiles */
-  .tiles{display:flex;gap:12px;margin-bottom:14px}
-  .tile{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:14px;cursor:pointer}
-  .ticon{width:36px;height:36px;border-radius:11px;background:var(--surface2);display:flex;align-items:center;
-    justify-content:center;color:var(--accent-text);font-size:18px;margin-bottom:10px}
-  .tile .t{font-size:15px;font-weight:700}
-  .tile .c{font-size:12px;font-weight:600;color:var(--muted);margin-top:2px}
 
   .title{font-size:15px;font-weight:700}
   .sub{font-size:12.5px;font-weight:600;color:var(--muted);margin-top:2px}
@@ -123,13 +121,17 @@
   </a>
 
   <div class="hero">
-    <div class="ov">Ranked</div>
-    <h2>Play Online</h2>
-    <p>Get matched with a player near your rating.</p>
-    <button class="btn primary" onclick="toast('Online play arrives in Stage 2 (needs the game server).')">
-      Find a match <span class="tag">~30s</span>
-    </button>
-    <div class="online"><span class="dot"></span>2,418 players online</div>
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div><div class="ov">1v1 · New</div><h2>Play Online</h2></div>
+      <div class="online"><span class="dot"></span>online</div>
+    </div>
+    <p>Play a friend, or get matched for a ranked game.</p>
+    <button class="btn primary" onclick="go('online.html?go=quick')">⚡ Quick match <span class="tag">ranked</span></button>
+    <button class="btn sub" style="margin-top:10px" onclick="go('online.html?go=friend')">👥 Play a friend <span class="tag">casual</span></button>
+    <div class="joinrow">
+      <input id="homeJoin" placeholder="CODE" maxlength="6" autocomplete="off" />
+      <button class="jbtn" onclick="joinByCode()">Join</button>
+    </div>
   </div>
 
   <div class="card engine">
@@ -153,25 +155,12 @@
     <button class="btn primary" style="margin-top:12px" onclick="go('game.html')">Play</button>
   </div>
 
-  <div class="tiles">
-    <div class="tile" onclick="toast('Puzzles come in Stage 3.')">
-      <div class="ticon">◆</div>
-      <div class="t">Puzzles</div>
-      <div class="c">Train your tactics</div>
-    </div>
-    <div class="tile" onclick="go('review.html')">
-      <div class="ticon">◷</div>
-      <div class="t">Review</div>
-      <div class="c">Analyze your games</div>
-    </div>
-  </div>
-
 </div>
 
 <div class="nav">
   <a class="on" href="home.html"><span class="ic"></span>Home</a>
   <a href="game.html"><span class="ic"></span>Play</a>
-  <a href="#" onclick="toast('Puzzles come in Stage 3.');return false;"><span class="ic"></span>Puzzles</a>
+  <a href="#" onclick="toast('Puzzles come soon.');return false;"><span class="ic"></span>Puzzles</a>
   <a href="profile.html"><span class="ic"></span>Profile</a>
 </div>
 
@@ -219,6 +208,8 @@
   initHome();
 
   function go(url){ window.location.href = url; }
+  function joinByCode(){ var c = (document.getElementById("homeJoin").value || "").trim().toUpperCase();
+    if (c.length < 4) { toast("Enter your friend's code"); return; } go("online.html?join=" + c); }
   var tT, te=document.getElementById('toast');
   function toast(m){ te.textContent=m; te.classList.add('show'); clearTimeout(tT);
     tT=setTimeout(function(){ te.classList.remove('show'); },2600); }
