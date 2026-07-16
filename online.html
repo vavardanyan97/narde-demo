@@ -123,26 +123,6 @@
   /* ===== game screen fills the column so the board can flex ===== */
   #game{flex:1;display:flex;flex-direction:column;min-height:0}
 
-  /* ===== lobby ===== */
-  .lobby-h{font-size:22px;font-weight:800;margin:14px 0 2px}
-  .lobby-sub{color:var(--muted);font-size:13px;margin-bottom:16px}
-  .mecard{display:flex;justify-content:space-between;align-items:center;background:var(--surface);
-    border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:14px}
-  .mecard .who{display:flex;align-items:center;gap:10px}
-  .big{width:100%;height:60px;border-radius:16px;border:none;font-family:inherit;font-weight:800;font-size:16px;
-    display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;margin-bottom:12px}
-  .big.primary{background:linear-gradient(180deg,#54bd87,#3f9d6e);color:#0e1411;box-shadow:0 12px 26px rgba(70,172,121,.3)}
-  .big.ghost{background:var(--surface2);color:var(--text);border:1px solid var(--line)}
-  .big small{font-weight:600;opacity:.8;font-size:13px}
-  .big:active{transform:scale(.99)}
-  .codecard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
-  .codecard .lab{color:var(--muted);font-size:12px;margin-bottom:8px}
-  .coderow{display:flex;gap:10px}
-  .coderow input{flex:1;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);
-    color:var(--text);font-size:16px;padding:0 14px;letter-spacing:3px;text-transform:uppercase;font-family:inherit}
-  .coderow .join{width:90px;border-radius:12px;border:none;background:var(--accent);color:#0e1411;
-    font-weight:800;font-family:inherit;cursor:pointer}
-
   /* ===== auth / waiting cards ===== */
   .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 18px;margin-top:8px}
   .center{text-align:center}
@@ -154,6 +134,46 @@
     border:1px solid var(--line);background:var(--surface2);color:var(--text);font-family:inherit;font-weight:700;
     font-size:14px;cursor:pointer;text-decoration:none}
   .wbtn.primary{background:var(--accent);color:#0e1411;border:none}
+
+  /* ===== radar searching screen ===== */
+  .radar{position:relative;width:170px;height:170px;margin:44px auto 26px;display:flex;align-items:center;justify-content:center}
+  .radar .ring{position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;
+    border:2px solid rgba(70,172,121,.6);opacity:0;animation:radarPulse 2.6s ease-out infinite}
+  .radar .ring:nth-child(2){animation-delay:.87s}
+  .radar .ring:nth-child(3){animation-delay:1.74s}
+  @keyframes radarPulse{0%{transform:scale(.5);opacity:.75}70%{opacity:.12}100%{transform:scale(3.1);opacity:0}}
+  .radarAv{width:60px;height:60px;border-radius:19px;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:22px;letter-spacing:-.02em;z-index:2;
+    background:radial-gradient(circle at 38% 30%,#f5edda,#d7c8a6 82%);color:#2a251d;
+    box-shadow:0 0 0 4px rgba(70,172,121,.16),0 6px 20px rgba(0,0,0,.55)}
+  .searchTitle{text-align:center;font-weight:800;font-size:19px;margin-bottom:7px}
+  .searchMeta{text-align:center;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;min-height:17px}
+  .searchTimerWrap{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:30px}
+  .searchDot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:ndpulse2 1.6s infinite}
+  #searchTimer{color:var(--accent-text);font-size:15px;font-weight:800}
+  .searchAction{text-align:center}
+
+  /* ===== dice roll animation ===== */
+  .die.rolling{animation:ndroll .16s ease-in-out infinite}
+  @keyframes ndroll{0%,100%{transform:translateY(0) rotate(-7deg)}50%{transform:translateY(-4px) rotate(7deg)}}
+
+  /* ===== disconnect banner ===== */
+  .dcbanner{align-self:center;display:flex;align-items:center;gap:8px;margin:2px 0 4px;padding:6px 13px;border-radius:999px;
+    background:rgba(217,164,65,.14);border:1px solid rgba(217,164,65,.4);color:#e6c072;font-size:12px;font-weight:700;text-align:center}
+  .dcdot{width:7px;height:7px;border-radius:50%;background:#d9a441;flex:none;animation:ndpulse2 1.3s infinite}
+
+  /* ===== opening roll overlay ===== */
+  .openmodal{max-width:340px}
+  .openttl{font-size:20px;font-weight:800;margin-bottom:4px}
+  .opensub{font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:22px}
+  .openrow{display:flex;align-items:stretch;justify-content:center;gap:14px;margin-bottom:20px}
+  .openside{display:flex;flex-direction:column;align-items:center;gap:12px;flex:1;padding:14px 6px;border-radius:14px;
+    border:1px solid var(--line);background:rgba(255,255,255,.02);transition:border-color .2s,background .2s}
+  .openside.win{border-color:var(--accent);background:rgba(70,172,121,.1)}
+  .opennm{font-size:13px;font-weight:700;color:var(--text2)}
+  .opendice{display:flex;min-height:34px;align-items:center}
+  .openvs{align-self:center;font-size:12px;font-weight:800;color:var(--muted)}
+  .openresult{font-size:16px;font-weight:800;color:var(--accent-text);min-height:22px}
 
   /* ===== result modal (from single-player) ===== */
   .overlay{position:fixed;inset:0;background:rgba(8,9,12,.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
@@ -205,30 +225,6 @@
     </div>
   </div>
 
-  <!-- ===================== LOBBY ===================== -->
-  <div id="lobby" class="hide">
-    <div class="topbar">
-      <a class="icbtn" href="home.html" aria-label="Back">‹</a>
-      <div class="tbtitle"><div class="ov">Play online</div><div class="sc">Long Narde</div></div>
-      <a class="icbtn" href="profile.html" aria-label="Profile">⚙</a>
-    </div>
-    <div class="lobby-h">Play online</div>
-    <div class="lobby-sub">Challenge a friend, or get matched for a ranked game.</div>
-    <div class="mecard">
-      <div class="who"><div class="av w" id="meAv">R</div>
-        <div><div class="nm" id="meName">…</div><div class="rating">You</div></div></div>
-      <div style="text-align:right"><div class="rating">Rating</div>
-        <div style="font-weight:800;font-size:18px" id="meRating">—</div></div>
-    </div>
-    <button class="big primary" id="quickBtn">⚡ Quick match <small>· ranked</small></button>
-    <button class="big ghost" id="friendBtn">👥 Play a friend <small>· casual</small></button>
-    <div class="codecard">
-      <div class="lab">Have a code from a friend?</div>
-      <div class="coderow"><input id="joinCode" placeholder="CODE" maxlength="6" autocomplete="off"/>
-        <button class="join" id="joinBtn">Join</button></div>
-    </div>
-  </div>
-
   <!-- ===================== WAITING ===================== -->
   <div id="waiting" class="hide">
     <div class="topbar">
@@ -236,15 +232,27 @@
       <div class="tbtitle"><div class="ov" id="waitOv">Waiting</div><div class="sc">Long Narde</div></div>
       <span class="icbtn" aria-hidden="true">⚙</span>
     </div>
-    <div class="card center">
-      <div id="waitSpin" class="spin"></div>
-      <div id="waitTitle" style="font-weight:800;font-size:17px">Waiting for opponent…</div>
-      <div id="inviteWrap" class="hide">
-        <div class="muted" style="margin-top:10px">Share this code or link with a friend</div>
-        <div class="codebox" id="inviteCode">——————</div>
-        <button class="wbtn primary" id="copyLink">Copy invite link</button>
+
+    <!-- radar search (Quick match) -->
+    <div id="searchWrap" class="hide">
+      <div class="radar">
+        <span class="ring"></span><span class="ring"></span><span class="ring"></span>
+        <div class="radarAv" id="radarAv">R</div>
       </div>
-      <div style="margin-top:18px"><button class="wbtn" id="cancelWait">Cancel</button></div>
+      <div class="searchTitle">Searching for an opponent…</div>
+      <div class="searchMeta" id="searchMeta">near your rating</div>
+      <div class="searchTimerWrap"><span class="searchDot"></span><span id="searchTimer" class="tnum">0:00</span></div>
+      <div class="searchAction"><button class="wbtn" id="cancelSearch">Cancel</button></div>
+    </div>
+
+    <!-- friend invite (Play a friend) -->
+    <div id="inviteWrap" class="hide card center">
+      <div style="font-weight:800;font-size:17px">Game created</div>
+      <div class="muted" style="margin-top:10px">Share this code or link with a friend</div>
+      <div class="codebox" id="inviteCode">——————</div>
+      <button class="wbtn primary" id="copyLink">Copy invite link</button>
+      <div class="muted" style="margin-top:14px">Waiting for your friend to join…</div>
+      <div style="margin-top:16px"><button class="wbtn" id="cancelWait">Cancel</button></div>
     </div>
   </div>
 
@@ -266,6 +274,7 @@
     </div>
 
     <div class="turnpill" id="turnpill"><span class="tdot"></span><span class="tlabel" id="tlabel">…</span></div>
+    <div class="dcbanner hide" id="dcBanner"><span class="dcdot"></span><span id="dcText">Opponent disconnected — waiting for them to return…</span></div>
 
     <div class="board" id="board">
       <div class="field">
@@ -316,9 +325,29 @@
       <div class="rava b" id="rAvaOpp">?</div>
     </div>
     <div class="rbtns">
-      <button class="btn primary" id="resHome">Back to lobby</button>
-      <a class="btn ghost" href="home.html">Home</a>
+      <button class="btn primary" id="resHome">Back to home</button>
+      <a class="btn ghost" href="profile.html">View profile</a>
     </div>
+  </div>
+</div>
+
+<!-- ===================== OPENING ROLL ===================== -->
+<div class="overlay" id="openOverlay">
+  <div class="modal openmodal">
+    <div class="openttl">Opening roll</div>
+    <div class="opensub">Higher die goes first</div>
+    <div class="openrow">
+      <div class="openside" id="openSideW">
+        <div class="opennm" id="openNmW">White</div>
+        <div class="opendice" id="openDieW"></div>
+      </div>
+      <div class="openvs">vs</div>
+      <div class="openside" id="openSideB">
+        <div class="opennm" id="openNmB">Black</div>
+        <div class="opendice" id="openDieB"></div>
+      </div>
+    </div>
+    <div class="openresult" id="openResult">…</div>
   </div>
 </div>
 
@@ -370,7 +399,8 @@ function headLimitFor(hm,pl,dice){ if(!hm[pl]&&dice[0]===dice[1]&&(dice[0]===3||
 
 /* ===================== helpers ===================== */
 var $=function(id){return document.getElementById(id);};
-function show(id){ ['authGate','lobby','waiting','game'].forEach(function(x){ $(x).classList.toggle('hide', x!==id); }); }
+function show(id){ ['authGate','waiting','game'].forEach(function(x){ $(x).classList.toggle('hide', x!==id); }); }
+function toHome(){ location.href='home.html'; }
 function toast(m){ var t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},1900); }
 function boardFromRow(row){ var o=row.board.off; return {pts:row.board.pts.slice(), off:{1:(o['1']!=null?o['1']:o[1]), '-1':(o['-1']!=null?o['-1']:o[-1])}}; }
 function offN(bd,pl){ return bd.off[pl]!=null?bd.off[pl]:bd.off[String(pl)]; }
@@ -386,6 +416,9 @@ var MY_NAME='you', MY_RATING=1200, MY_COUNTRY='';
 /* per-turn move-building state (mirrors game.html's G) */
 var G={board:null,turnStart:null,dice:null,seqs:[],maxLen:0,prefix:[],selected:null,submitting:false,_destMap:{}};
 var cellEls={};
+var lastRollKey='';               // dice roll-animation guard
+var searchTimer=null, searchT0=0; // radar searching screen
+var oppEverPresent=false;         // have we seen the opponent online this game?
 function myClass(){ return MYCOLOR===WHITE?'w':'b'; }
 function oppClass(){ return OPP===WHITE?'w':'b'; }
 function isMyTurn(){ return !!(MATCH && MATCH.status==='active' && MATCH.turn===MYCOLOR); }
@@ -402,59 +435,129 @@ async function boot(){
   MY_NAME=(pr&&(pr.username||pr.name||pr.handle))||u.email||'you';
   MY_RATING=(pr&&pr.rating!=null)?pr.rating:1200;
   MY_COUNTRY=(pr&&(pr.country||pr.flag))||'';
-  $('meName').textContent=MY_NAME;
-  $('meRating').textContent=MY_RATING;
-  $('meAv').textContent=initial(MY_NAME);
-  show('lobby');
-  // deep-link ?join=CODE
-  var code=new URLSearchParams(location.search).get('join');
-  if(code){ $('joinCode').value=code.toUpperCase(); doJoin(); return; }
+  // Home is the lobby — this page only ever runs an action or resumes a game.
+  var params=new URLSearchParams(location.search);
+  var code=params.get('join'), goParam=params.get('go');
+  if(goParam==='quick'){ startQuick(); return; }
+  if(goParam==='friend'){ startFriend(); return; }
+  if(code){ doJoin(code); return; }
   // reconnect: resume an active match I'm already in
   var act=(await sb.from('matches').select('*').or('white_id.eq.'+u.id+',black_id.eq.'+u.id).eq('status','active').limit(1)).data;
-  if(act&&act[0]) enterMatch(act[0]);
+  if(act&&act[0]){ enterMatch(act[0]); return; }
+  toHome();
 }
 
-/* ===================== lobby actions ===================== */
-$('friendBtn').onclick=async function(){ var j=await call('create_invite'); if(!j) return;
+/* ===================== radar searching UI ===================== */
+function startSearchUI(){
+  $('radarAv').textContent=initial(MY_NAME);
+  $('searchMeta').textContent='near your rating · '+MY_RATING;
+  searchT0=Date.now(); $('searchTimer').textContent='0:00';
+  clearInterval(searchTimer);
+  searchTimer=setInterval(function(){
+    var s=Math.floor((Date.now()-searchT0)/1000), mm=Math.floor(s/60), ss=s%60;
+    $('searchTimer').textContent=mm+':'+(ss<10?'0':'')+ss;
+    if(s===12) $('searchMeta').textContent='Still searching for a good match…';
+    if(s===30) $('searchMeta').textContent='Hang tight — widening the field…';
+  },1000);
+}
+function stopSearchUI(){ clearInterval(searchTimer); searchTimer=null; $('searchWrap').classList.add('hide'); }
+
+/* ===================== online actions (entered from Home) ===================== */
+async function startFriend(){
+  show('waiting'); $('waitOv').textContent='Casual game';
+  $('searchWrap').classList.add('hide'); $('inviteWrap').classList.remove('hide'); $('inviteCode').textContent='——————';
+  var j=await call('create_invite'); if(!j){ toHome(); return; }
   MATCH=j.match; MYCOLOR=(j.match.white_id===ME.id)?WHITE:BLACK; OPP=-MYCOLOR;
-  show('waiting'); $('waitOv').textContent='Casual game'; $('waitTitle').textContent='Game created';
-  $('inviteWrap').classList.remove('hide'); $('inviteCode').textContent=j.code;
-  subscribeMatch(j.match.id, true); };
+  $('inviteCode').textContent=j.code;
+  subscribeMatch(j.match.id, true);
+}
 $('copyLink').onclick=function(){ var url=location.origin+location.pathname+'?join='+$('inviteCode').textContent;
   if(navigator.clipboard){ navigator.clipboard.writeText(url).then(function(){toast('Link copied');},function(){toast(url);}); }
   else toast(url); };
-$('joinBtn').onclick=doJoin;
-async function doJoin(){ var code=$('joinCode').value.trim().toUpperCase(); if(code.length<4) return toast('Enter a code');
-  var j=await call('join_invite',{code:code}); if(!j) return; enterMatch(j.match); }
-$('quickBtn').onclick=async function(){ var j=await call('quick_join'); if(!j) return;
-  if(j.matched){ enterMatch(j.match); }
-  else { show('waiting'); $('waitOv').textContent='Ranked match'; $('waitTitle').textContent='Searching for an opponent…';
-    $('inviteWrap').classList.add('hide'); subscribeQueue(); } };
-$('cancelWait').onclick=async function(){ await call('cancel_queue'); if(qchan){ sb.removeChannel(qchan); qchan=null; }
-  if(chan){ sb.removeChannel(chan); chan=null; } MATCH=null; show('lobby'); };
-$('waitBack').onclick=$('cancelWait').onclick;
-$('gameBack').onclick=function(){ if(chan){ sb.removeChannel(chan); chan=null; } show('lobby'); };
+async function doJoin(code){ code=(code||'').trim().toUpperCase(); if(code.length<4){ toast('Enter a code'); toHome(); return; }
+  var j=await call('join_invite',{code:code}); if(!j){ toHome(); return; } enterMatch(j.match); }
+async function startQuick(){
+  show('waiting'); $('waitOv').textContent='Ranked match';
+  $('inviteWrap').classList.add('hide'); $('searchWrap').classList.remove('hide');
+  startSearchUI();
+  var j=await call('quick_join'); if(!j){ stopSearchUI(); toHome(); return; }
+  if(j.matched){ stopSearchUI(); enterMatch(j.match); }
+  else { subscribeQueue(); }
+}
+function cancelWaiting(){ stopSearchUI();
+  (async function(){ await call('cancel_queue'); })();
+  if(qchan){ sb.removeChannel(qchan); qchan=null; }
+  if(chan){ sb.removeChannel(chan); chan=null; } MATCH=null; toHome(); }
+$('cancelWait').onclick=cancelWaiting;
+$('cancelSearch').onclick=cancelWaiting;
+$('waitBack').onclick=cancelWaiting;
+$('gameBack').onclick=function(){ if(chan){ sb.removeChannel(chan); chan=null; } toHome(); };
 
 /* ===================== realtime ===================== */
 function subscribeMatch(id, waitingForJoin){ if(chan) sb.removeChannel(chan);
-  chan=sb.channel('m'+id).on('postgres_changes',{event:'UPDATE',schema:'public',table:'matches',filter:'id=eq.'+id},
-    function(p){ var row=p.new; if(waitingForJoin && row.status==='active'){ enterMatch(row); } else if(MATCH){ onMatchUpdate(row); } }).subscribe(); }
+  oppEverPresent=false;
+  chan=sb.channel('m'+id,{config:{presence:{key:ME.id}}})
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'matches',filter:'id=eq.'+id},
+      function(p){ var row=p.new; if(waitingForJoin && row.status==='active'){ enterMatch(row); } else if(MATCH){ onMatchUpdate(row); } })
+    .on('presence',{event:'sync'},updatePresence)
+    .on('presence',{event:'join'},updatePresence)
+    .on('presence',{event:'leave'},updatePresence)
+    .subscribe(function(status){ if(status==='SUBSCRIBED'){ try{ chan.track({online:true}); }catch(e){} } }); }
+/* Show a banner while the opponent is away; clears when they return (no auto-forfeit). */
+function updatePresence(){
+  var b=$('dcBanner'); if(!b) return;
+  if(!chan || !chan.presenceState || !MATCH || MATCH.status!=='active'){ b.classList.add('hide'); return; }
+  var oppId=(MYCOLOR===WHITE)?MATCH.black_id:MATCH.white_id;
+  var st=chan.presenceState(); var online=!!(oppId && st[oppId]);
+  if(online) oppEverPresent=true;
+  b.classList.toggle('hide', !(oppEverPresent && !online));
+}
 function subscribeQueue(){ if(qchan) sb.removeChannel(qchan);
   qchan=sb.channel('q'+ME.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'matches'},
     function(p){ var row=p.new; if(row.status==='active'&&(row.white_id===ME.id||row.black_id===ME.id)){ sb.removeChannel(qchan); qchan=null; enterMatch(row); } }).subscribe(); }
 
 /* ===================== enter / update match ===================== */
 function enterMatch(row){
+  stopSearchUI();
   MATCH=row; MYCOLOR=(row.white_id===ME.id)?WHITE:BLACK; OPP=-MYCOLOR;
+  lastRollKey='';   // let the first roll of this match animate
   if(qchan){ sb.removeChannel(qchan); qchan=null; }
   $('overlay').classList.remove('show');
   buildBoard();
   setupStrips();
   G={board:null,turnStart:null,dice:null,seqs:[],maxLen:0,prefix:[],selected:null,submitting:false,_destMap:{}};
   show('game');
+  $('dcBanner').classList.add('hide');
   subscribeMatch(row.id,false);
   fetchOpp();
   syncFromMatch();
+  maybeShowOpening(row);
+}
+/* ===================== opening roll reveal ===================== */
+function oppNameOr(fb){ var n=$('oppName')?$('oppName').textContent:''; return (n && n!=='Opponent')?n:fb; }
+function maybeShowOpening(row){
+  if(!row.open_roll || row.status!=='active') return;
+  var key='nd_open_'+row.id;
+  try{ if(localStorage.getItem(key)) return; localStorage.setItem(key,'1'); }catch(e){}
+  var ow=row.open_roll.w, ob=row.open_roll.b, starter=(ow>ob)?WHITE:BLACK;
+  $('openNmW').textContent=(MYCOLOR===WHITE?'You':oppNameOr('White'));
+  $('openNmB').textContent=(MYCOLOR===BLACK?'You':oppNameOr('Black'));
+  $('openResult').textContent='…';
+  $('openSideW').classList.remove('win'); $('openSideB').classList.remove('win');
+  $('openOverlay').classList.add('show');
+  var dw=$('openDieW'), db=$('openDieB'), i=0, ticks=9;
+  var iv=setInterval(function(){
+    dw.innerHTML=''; dw.appendChild(buildDie(rnd6(),false,true));
+    db.innerHTML=''; db.appendChild(buildDie(rnd6(),false,true));
+    if(++i>=ticks){ clearInterval(iv);
+      dw.innerHTML=''; dw.appendChild(buildDie(ow,false,false));
+      db.innerHTML=''; db.appendChild(buildDie(ob,false,false));
+      $('openSideW').classList.toggle('win',starter===WHITE);
+      $('openSideB').classList.toggle('win',starter===BLACK);
+      $('openResult').textContent=(starter===MYCOLOR)?'You go first!':'Opponent goes first';
+      setTimeout(function(){ $('openOverlay').classList.remove('show'); }, 1800);
+    }
+  },70);
 }
 function onMatchUpdate(row){
   MATCH=row;
@@ -523,6 +626,9 @@ function syncFromMatch(){
     G.maxLen=G.seqs.length?G.seqs[0].moves.length:0;
   } else { G.seqs=[]; G.maxLen=0; }
   render();
+  // dice roll animation whenever a fresh roll appears (mine or opponent's)
+  var rollKey=(MATCH.status==='active' && G.dice)?(MATCH.turn+':'+G.dice[0]+','+G.dice[1]):'';
+  if(rollKey && rollKey!==lastRollKey){ lastRollKey=rollKey; animateRoll(); }
   // safety net: server almost always hands us a position with a legal move, but
   // if it couldn't (its 6-try fallback), auto-submit the unchanged board as a pass.
   if(isMyTurn() && G.dice && G.seqs.length===0 && !G.submitting){ setTimeout(function(){ if(isMyTurn() && G.seqs.length===0) submitTurn(); }, 700); }
@@ -612,13 +718,23 @@ function updatePill(){
 
 /* ===================== dice ===================== */
 var PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
-function buildDie(val,used){ var die=document.createElement('div'); die.className='die'+(used?' used':'');
+function rnd6(){ return 1+Math.floor(Math.random()*6); }
+function buildDie(val,used,rolling){ var die=document.createElement('div'); die.className='die'+(used?' used':'')+(rolling?' rolling':'');
   var set=PIPS[val]; for(var i=0;i<9;i++){ var s=document.createElement('span'); if(set.indexOf(i)>=0) s.className='pip'; die.appendChild(s); } return die; }
 function renderDice(){ var el=$('dicebox'); if(!el) return; el.innerHTML='';
   if(!G.dice) return;
   var vals=G.dice[0]===G.dice[1]?[G.dice[0],G.dice[0],G.dice[0],G.dice[0]]:[G.dice[0],G.dice[1]];
   var rem={}; G.prefix.forEach(function(s){ rem[s.die]=(rem[s.die]||0)+1; });
-  for(var d=0;d<vals.length;d++){ var v=vals[d], u=false; if(rem[v]>0){ u=true; rem[v]--; } el.appendChild(buildDie(v,u)); } }
+  for(var d=0;d<vals.length;d++){ var v=vals[d], u=false; if(rem[v]>0){ u=true; rem[v]--; } el.appendChild(buildDie(v,u,false)); } }
+var rolling=false;
+function animateRoll(done){ rolling=true;
+  var el=$('dicebox'), dl=$('dicelayer'); if(!el){ rolling=false; if(done)done(); return; }
+  if(dl) dl.style.display='block';
+  var ub=$('undoBtn'); if(ub) ub.style.display='none';
+  function frame(){ el.innerHTML=''; el.appendChild(buildDie(rnd6(),false,true)); el.appendChild(buildDie(rnd6(),false,true)); }
+  frame();
+  var i=0,ticks=9,iv=setInterval(function(){ frame();
+    if(++i>=ticks){ clearInterval(iv); rolling=false; renderDice(); updateControls(); if(done) done(); } },60); }
 
 /* ===================== controls ===================== */
 function updateControls(){
@@ -712,11 +828,15 @@ $('resignBtn').onclick=async function(){ if(isFinished()) return; if(!confirm('R
 
 /* ===================== result ===================== */
 function showResult(row){
+  $('dcBanner').classList.add('hide');
   var iWon=(row.winner===MYCOLOR), mars=!!row.mars, pts=mars?2:1;
   var wt=$('winTitle');
   wt.textContent = iWon ? (mars?'Mars!':'Victory') : (mars?'Mars — you lost':'Defeat');
   wt.style.color = iWon ? '#7fdca8' : '#e08079';
-  $('ptsBadge').textContent='+'+pts;
+  var badge=$('ptsBadge');
+  badge.textContent=(iWon?'+':'−')+pts;                       // winner gains, loser loses — not +2 for both
+  badge.style.borderColor=iWon?'var(--accent)':'#d6584f';
+  badge.style.color=iWon?'var(--accent-text)':'#e08079';
   var txt;
   if(iWon) txt = mars ? 'Double win — your opponent bore off <b>0</b> checkers. Worth 2 points.' : 'You won this game. Worth 1 point.';
   else txt = mars ? 'Mars — you bore off <b>0</b> checkers. Your opponent scores 2 points.' : 'Your opponent won this game. Worth 1 point.';
@@ -727,11 +847,11 @@ function showResult(row){
   am.className='rava '+myClass()+(iWon?' win':''); am.textContent=initial(MY_NAME); am.style.opacity=iWon?'1':'.6';
   ao.className='rava '+oppClass()+(iWon?'':' win'); ao.textContent=initial($('oppName').textContent); ao.style.opacity=iWon?'.6':'1';
   $('overlay').classList.add('show');
-  // for a ranked game the server just changed our rating — refresh it for the lobby
+  // for a ranked game the server just changed our rating — refresh our strip
   if(row.is_rated){ sb.from('profiles').select('rating').eq('id',ME.id).single().then(function(p){
-    if(p&&p.data&&p.data.rating!=null){ MY_RATING=p.data.rating; $('meRating').textContent=MY_RATING; $('meGameRating').textContent=MY_RATING; } }); }
+    if(p&&p.data&&p.data.rating!=null){ MY_RATING=p.data.rating; $('meGameRating').textContent=MY_RATING; } }); }
 }
-$('resHome').onclick=function(){ $('overlay').classList.remove('show'); if(chan){ sb.removeChannel(chan); chan=null; } MATCH=null; boot(); };
+$('resHome').onclick=function(){ $('overlay').classList.remove('show'); if(chan){ sb.removeChannel(chan); chan=null; } MATCH=null; toHome(); };
 
 /* ===================== go ===================== */
 boot();
