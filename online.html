@@ -155,6 +155,28 @@
     font-size:14px;cursor:pointer;text-decoration:none}
   .wbtn.primary{background:var(--accent);color:#0e1411;border:none}
 
+  /* ===== radar searching screen ===== */
+  .radar{position:relative;width:170px;height:170px;margin:44px auto 26px;display:flex;align-items:center;justify-content:center}
+  .radar .ring{position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;
+    border:2px solid rgba(70,172,121,.6);opacity:0;animation:radarPulse 2.6s ease-out infinite}
+  .radar .ring:nth-child(2){animation-delay:.87s}
+  .radar .ring:nth-child(3){animation-delay:1.74s}
+  @keyframes radarPulse{0%{transform:scale(.5);opacity:.75}70%{opacity:.12}100%{transform:scale(3.1);opacity:0}}
+  .radarAv{width:60px;height:60px;border-radius:19px;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:22px;letter-spacing:-.02em;z-index:2;
+    background:radial-gradient(circle at 38% 30%,#f5edda,#d7c8a6 82%);color:#2a251d;
+    box-shadow:0 0 0 4px rgba(70,172,121,.16),0 6px 20px rgba(0,0,0,.55)}
+  .searchTitle{text-align:center;font-weight:800;font-size:19px;margin-bottom:7px}
+  .searchMeta{text-align:center;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;min-height:17px}
+  .searchTimerWrap{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:30px}
+  .searchDot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:ndpulse2 1.6s infinite}
+  #searchTimer{color:var(--accent-text);font-size:15px;font-weight:800}
+  .searchAction{text-align:center}
+
+  /* ===== dice roll animation ===== */
+  .die.rolling{animation:ndroll .16s ease-in-out infinite}
+  @keyframes ndroll{0%,100%{transform:translateY(0) rotate(-7deg)}50%{transform:translateY(-4px) rotate(7deg)}}
+
   /* ===== result modal (from single-player) ===== */
   .overlay{position:fixed;inset:0;background:rgba(8,9,12,.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
     display:none;align-items:center;justify-content:center;padding:24px;z-index:100}
@@ -236,15 +258,27 @@
       <div class="tbtitle"><div class="ov" id="waitOv">Waiting</div><div class="sc">Long Narde</div></div>
       <span class="icbtn" aria-hidden="true">⚙</span>
     </div>
-    <div class="card center">
-      <div id="waitSpin" class="spin"></div>
-      <div id="waitTitle" style="font-weight:800;font-size:17px">Waiting for opponent…</div>
-      <div id="inviteWrap" class="hide">
-        <div class="muted" style="margin-top:10px">Share this code or link with a friend</div>
-        <div class="codebox" id="inviteCode">——————</div>
-        <button class="wbtn primary" id="copyLink">Copy invite link</button>
+
+    <!-- radar search (Quick match) -->
+    <div id="searchWrap" class="hide">
+      <div class="radar">
+        <span class="ring"></span><span class="ring"></span><span class="ring"></span>
+        <div class="radarAv" id="radarAv">R</div>
       </div>
-      <div style="margin-top:18px"><button class="wbtn" id="cancelWait">Cancel</button></div>
+      <div class="searchTitle">Searching for an opponent…</div>
+      <div class="searchMeta" id="searchMeta">near your rating</div>
+      <div class="searchTimerWrap"><span class="searchDot"></span><span id="searchTimer" class="tnum">0:00</span></div>
+      <div class="searchAction"><button class="wbtn" id="cancelSearch">Cancel</button></div>
+    </div>
+
+    <!-- friend invite (Play a friend) -->
+    <div id="inviteWrap" class="hide card center">
+      <div style="font-weight:800;font-size:17px">Game created</div>
+      <div class="muted" style="margin-top:10px">Share this code or link with a friend</div>
+      <div class="codebox" id="inviteCode">——————</div>
+      <button class="wbtn primary" id="copyLink">Copy invite link</button>
+      <div class="muted" style="margin-top:14px">Waiting for your friend to join…</div>
+      <div style="margin-top:16px"><button class="wbtn" id="cancelWait">Cancel</button></div>
     </div>
   </div>
 
@@ -386,6 +420,8 @@ var MY_NAME='you', MY_RATING=1200, MY_COUNTRY='';
 /* per-turn move-building state (mirrors game.html's G) */
 var G={board:null,turnStart:null,dice:null,seqs:[],maxLen:0,prefix:[],selected:null,submitting:false,_destMap:{}};
 var cellEls={};
+var lastRollKey='';               // dice roll-animation guard
+var searchTimer=null, searchT0=0; // radar searching screen
 function myClass(){ return MYCOLOR===WHITE?'w':'b'; }
 function oppClass(){ return OPP===WHITE?'w':'b'; }
 function isMyTurn(){ return !!(MATCH && MATCH.status==='active' && MATCH.turn===MYCOLOR); }
@@ -405,37 +441,61 @@ async function boot(){
   $('meName').textContent=MY_NAME;
   $('meRating').textContent=MY_RATING;
   $('meAv').textContent=initial(MY_NAME);
-  show('lobby');
-  // deep-link ?join=CODE
-  var code=new URLSearchParams(location.search).get('join');
+  // deep-links: go straight to the action, no lobby flash
+  var params=new URLSearchParams(location.search);
+  var code=params.get('join'), goParam=params.get('go');
   if(code){ $('joinCode').value=code.toUpperCase(); doJoin(); return; }
-  var goParam=new URLSearchParams(location.search).get('go');
   if(goParam==='quick'){ $('quickBtn').onclick(); return; }
   if(goParam==='friend'){ $('friendBtn').onclick(); return; }
   // reconnect: resume an active match I'm already in
   var act=(await sb.from('matches').select('*').or('white_id.eq.'+u.id+',black_id.eq.'+u.id).eq('status','active').limit(1)).data;
-  if(act&&act[0]) enterMatch(act[0]);
+  if(act&&act[0]){ enterMatch(act[0]); return; }
+  show('lobby');
 }
 
+/* ===================== radar searching UI ===================== */
+function startSearchUI(){
+  $('radarAv').textContent=initial(MY_NAME);
+  $('searchMeta').textContent='near your rating · '+MY_RATING;
+  searchT0=Date.now(); $('searchTimer').textContent='0:00';
+  clearInterval(searchTimer);
+  searchTimer=setInterval(function(){
+    var s=Math.floor((Date.now()-searchT0)/1000), mm=Math.floor(s/60), ss=s%60;
+    $('searchTimer').textContent=mm+':'+(ss<10?'0':'')+ss;
+    if(s===12) $('searchMeta').textContent='Still searching for a good match…';
+    if(s===30) $('searchMeta').textContent='Hang tight — widening the field…';
+  },1000);
+}
+function stopSearchUI(){ clearInterval(searchTimer); searchTimer=null; $('searchWrap').classList.add('hide'); }
+
 /* ===================== lobby actions ===================== */
-$('friendBtn').onclick=async function(){ var j=await call('create_invite'); if(!j) return;
+$('friendBtn').onclick=async function(){
+  show('waiting'); $('waitOv').textContent='Casual game';
+  $('searchWrap').classList.add('hide'); $('inviteWrap').classList.remove('hide'); $('inviteCode').textContent='——————';
+  var j=await call('create_invite'); if(!j){ show('lobby'); return; }
   MATCH=j.match; MYCOLOR=(j.match.white_id===ME.id)?WHITE:BLACK; OPP=-MYCOLOR;
-  show('waiting'); $('waitOv').textContent='Casual game'; $('waitTitle').textContent='Game created';
-  $('inviteWrap').classList.remove('hide'); $('inviteCode').textContent=j.code;
+  $('inviteCode').textContent=j.code;
   subscribeMatch(j.match.id, true); };
 $('copyLink').onclick=function(){ var url=location.origin+location.pathname+'?join='+$('inviteCode').textContent;
   if(navigator.clipboard){ navigator.clipboard.writeText(url).then(function(){toast('Link copied');},function(){toast(url);}); }
   else toast(url); };
 $('joinBtn').onclick=doJoin;
 async function doJoin(){ var code=$('joinCode').value.trim().toUpperCase(); if(code.length<4) return toast('Enter a code');
-  var j=await call('join_invite',{code:code}); if(!j) return; enterMatch(j.match); }
-$('quickBtn').onclick=async function(){ var j=await call('quick_join'); if(!j) return;
-  if(j.matched){ enterMatch(j.match); }
-  else { show('waiting'); $('waitOv').textContent='Ranked match'; $('waitTitle').textContent='Searching for an opponent…';
-    $('inviteWrap').classList.add('hide'); subscribeQueue(); } };
-$('cancelWait').onclick=async function(){ await call('cancel_queue'); if(qchan){ sb.removeChannel(qchan); qchan=null; }
-  if(chan){ sb.removeChannel(chan); chan=null; } MATCH=null; show('lobby'); };
-$('waitBack').onclick=$('cancelWait').onclick;
+  var j=await call('join_invite',{code:code}); if(!j){ show('lobby'); return; } enterMatch(j.match); }
+$('quickBtn').onclick=async function(){
+  show('waiting'); $('waitOv').textContent='Ranked match';
+  $('inviteWrap').classList.add('hide'); $('searchWrap').classList.remove('hide');
+  startSearchUI();
+  var j=await call('quick_join'); if(!j){ stopSearchUI(); show('lobby'); return; }
+  if(j.matched){ stopSearchUI(); enterMatch(j.match); }
+  else { subscribeQueue(); } };
+function cancelWaiting(){ stopSearchUI();
+  (async function(){ await call('cancel_queue'); })();
+  if(qchan){ sb.removeChannel(qchan); qchan=null; }
+  if(chan){ sb.removeChannel(chan); chan=null; } MATCH=null; show('lobby'); }
+$('cancelWait').onclick=cancelWaiting;
+$('cancelSearch').onclick=cancelWaiting;
+$('waitBack').onclick=cancelWaiting;
 $('gameBack').onclick=function(){ if(chan){ sb.removeChannel(chan); chan=null; } show('lobby'); };
 
 /* ===================== realtime ===================== */
@@ -448,7 +508,9 @@ function subscribeQueue(){ if(qchan) sb.removeChannel(qchan);
 
 /* ===================== enter / update match ===================== */
 function enterMatch(row){
+  stopSearchUI();
   MATCH=row; MYCOLOR=(row.white_id===ME.id)?WHITE:BLACK; OPP=-MYCOLOR;
+  lastRollKey='';   // let the first roll of this match animate
   if(qchan){ sb.removeChannel(qchan); qchan=null; }
   $('overlay').classList.remove('show');
   buildBoard();
@@ -526,6 +588,9 @@ function syncFromMatch(){
     G.maxLen=G.seqs.length?G.seqs[0].moves.length:0;
   } else { G.seqs=[]; G.maxLen=0; }
   render();
+  // dice roll animation whenever a fresh roll appears (mine or opponent's)
+  var rollKey=(MATCH.status==='active' && G.dice)?(MATCH.turn+':'+G.dice[0]+','+G.dice[1]):'';
+  if(rollKey && rollKey!==lastRollKey){ lastRollKey=rollKey; animateRoll(); }
   // safety net: server almost always hands us a position with a legal move, but
   // if it couldn't (its 6-try fallback), auto-submit the unchanged board as a pass.
   if(isMyTurn() && G.dice && G.seqs.length===0 && !G.submitting){ setTimeout(function(){ if(isMyTurn() && G.seqs.length===0) submitTurn(); }, 700); }
@@ -615,13 +680,23 @@ function updatePill(){
 
 /* ===================== dice ===================== */
 var PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
-function buildDie(val,used){ var die=document.createElement('div'); die.className='die'+(used?' used':'');
+function rnd6(){ return 1+Math.floor(Math.random()*6); }
+function buildDie(val,used,rolling){ var die=document.createElement('div'); die.className='die'+(used?' used':'')+(rolling?' rolling':'');
   var set=PIPS[val]; for(var i=0;i<9;i++){ var s=document.createElement('span'); if(set.indexOf(i)>=0) s.className='pip'; die.appendChild(s); } return die; }
 function renderDice(){ var el=$('dicebox'); if(!el) return; el.innerHTML='';
   if(!G.dice) return;
   var vals=G.dice[0]===G.dice[1]?[G.dice[0],G.dice[0],G.dice[0],G.dice[0]]:[G.dice[0],G.dice[1]];
   var rem={}; G.prefix.forEach(function(s){ rem[s.die]=(rem[s.die]||0)+1; });
-  for(var d=0;d<vals.length;d++){ var v=vals[d], u=false; if(rem[v]>0){ u=true; rem[v]--; } el.appendChild(buildDie(v,u)); } }
+  for(var d=0;d<vals.length;d++){ var v=vals[d], u=false; if(rem[v]>0){ u=true; rem[v]--; } el.appendChild(buildDie(v,u,false)); } }
+var rolling=false;
+function animateRoll(done){ rolling=true;
+  var el=$('dicebox'), dl=$('dicelayer'); if(!el){ rolling=false; if(done)done(); return; }
+  if(dl) dl.style.display='block';
+  var ub=$('undoBtn'); if(ub) ub.style.display='none';
+  function frame(){ el.innerHTML=''; el.appendChild(buildDie(rnd6(),false,true)); el.appendChild(buildDie(rnd6(),false,true)); }
+  frame();
+  var i=0,ticks=9,iv=setInterval(function(){ frame();
+    if(++i>=ticks){ clearInterval(iv); rolling=false; renderDice(); updateControls(); if(done) done(); } },60); }
 
 /* ===================== controls ===================== */
 function updateControls(){
