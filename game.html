@@ -164,6 +164,19 @@
   .movesleft-inline .ovl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
   .movesleft-inline .nl{font-size:17px;font-weight:800}
 
+  /* ===== opening roll overlay ===== */
+  .openmodal{max-width:340px;text-align:center}
+  .openttl{font-size:20px;font-weight:800;margin-bottom:4px}
+  .opensub{font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:22px}
+  .openrow{display:flex;align-items:stretch;justify-content:center;gap:14px;margin-bottom:20px}
+  .openside{display:flex;flex-direction:column;align-items:center;gap:12px;flex:1;padding:14px 6px;border-radius:14px;
+    border:1px solid var(--line);background:rgba(255,255,255,.02);transition:border-color .2s,background .2s}
+  .openside.win{border-color:var(--accent);background:rgba(70,172,121,.1)}
+  .opennm{font-size:13px;font-weight:700;color:var(--text2)}
+  .opendice{display:flex;min-height:34px;align-items:center;justify-content:center}
+  .openvs{align-self:center;font-size:12px;font-weight:800;color:var(--muted)}
+  .openresult{font-size:16px;font-weight:800;color:var(--accent-text);min-height:22px}
+
   .overlay{position:fixed;inset:0;background:rgba(8,9,12,.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
     display:none;align-items:center;justify-content:center;padding:24px;z-index:100}
   .overlay.show{display:flex}
@@ -263,6 +276,20 @@
         <a class="btn ghost" href="home.html">Home</a>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ===================== OPENING ROLL ===================== -->
+<div class="overlay" id="openOverlay">
+  <div class="modal openmodal">
+    <div class="openttl">Opening roll</div>
+    <div class="opensub">Higher die goes first</div>
+    <div class="openrow">
+      <div class="openside" id="openSideYou"><div class="opennm">You</div><div class="opendice" id="openDieYou"></div></div>
+      <div class="openvs">vs</div>
+      <div class="openside" id="openSideEng"><div class="opennm">Engine</div><div class="opendice" id="openDieEng"></div></div>
+    </div>
+    <div class="openresult" id="openResult">…</div>
   </div>
 </div>
 
@@ -645,7 +672,34 @@ document.addEventListener('pointercancel', function(){ if(drag&&drag.ghost) drag
 var G;
 function roll(){ return [rnd6(),rnd6()]; }
 function newGame(){ G={board:initialBoard(),turn:WHITE,dice:null,hasMoved:{},seqs:[],prefix:[],selected:null,turnStart:null,maxLen:0,animating:false,log:[],flags:[]};
-  G.hasMoved[WHITE]=false; G.hasMoved[BLACK]=false; gameOver=false; document.getElementById('overlay').classList.remove('show'); showThinking(false); render(); setTimeout(maybeAutoRoll,550); }
+  G.hasMoved[WHITE]=false; G.hasMoved[BLACK]=false; gameOver=false; document.getElementById('overlay').classList.remove('show'); showThinking(false); render(); setTimeout(doOpeningRoll,450); }
+/* Opening roll: you + engine each roll one die, higher starts (ties re-roll), then the winner rolls fresh. */
+function doOpeningRoll(){
+  var w,b; do{ w=rnd6(); b=rnd6(); }while(w===b);
+  var starter=w>b?WHITE:BLACK;
+  showOpening(w,b,starter,function(){ G.turn=starter; if(starter===WHITE) maybeAutoRoll(); else startBotTurn(); });
+}
+function showOpening(youDie,engDie,starter,done){
+  var ov=document.getElementById('openOverlay');
+  var dy=document.getElementById('openDieYou'), de=document.getElementById('openDieEng');
+  var sy=document.getElementById('openSideYou'), se=document.getElementById('openSideEng');
+  document.getElementById('openResult').textContent='…';
+  sy.classList.remove('win'); se.classList.remove('win');
+  ov.classList.add('show');
+  var i=0,ticks=9;
+  var iv=setInterval(function(){
+    dy.innerHTML=''; dy.appendChild(buildDie(rnd6(),false,true));
+    de.innerHTML=''; de.appendChild(buildDie(rnd6(),false,true));
+    if(++i>=ticks){ clearInterval(iv);
+      dy.innerHTML=''; dy.appendChild(buildDie(youDie,false,false));
+      de.innerHTML=''; de.appendChild(buildDie(engDie,false,false));
+      sy.classList.toggle('win',starter===WHITE);
+      se.classList.toggle('win',starter===BLACK);
+      document.getElementById('openResult').textContent=(starter===WHITE)?'You go first!':'Engine goes first';
+      setTimeout(function(){ ov.classList.remove('show'); if(done) done(); }, 1600);
+    }
+  },70);
+}
 function onRoll(){
   if(G.turn!==WHITE || G.dice || G.animating) return;
   G.dice=roll(); G.prefix=[]; G.selected=null; G.turnStart=cloneBoard(G.board);
