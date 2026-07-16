@@ -123,26 +123,6 @@
   /* ===== game screen fills the column so the board can flex ===== */
   #game{flex:1;display:flex;flex-direction:column;min-height:0}
 
-  /* ===== lobby ===== */
-  .lobby-h{font-size:22px;font-weight:800;margin:14px 0 2px}
-  .lobby-sub{color:var(--muted);font-size:13px;margin-bottom:16px}
-  .mecard{display:flex;justify-content:space-between;align-items:center;background:var(--surface);
-    border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:14px}
-  .mecard .who{display:flex;align-items:center;gap:10px}
-  .big{width:100%;height:60px;border-radius:16px;border:none;font-family:inherit;font-weight:800;font-size:16px;
-    display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;margin-bottom:12px}
-  .big.primary{background:linear-gradient(180deg,#54bd87,#3f9d6e);color:#0e1411;box-shadow:0 12px 26px rgba(70,172,121,.3)}
-  .big.ghost{background:var(--surface2);color:var(--text);border:1px solid var(--line)}
-  .big small{font-weight:600;opacity:.8;font-size:13px}
-  .big:active{transform:scale(.99)}
-  .codecard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
-  .codecard .lab{color:var(--muted);font-size:12px;margin-bottom:8px}
-  .coderow{display:flex;gap:10px}
-  .coderow input{flex:1;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);
-    color:var(--text);font-size:16px;padding:0 14px;letter-spacing:3px;text-transform:uppercase;font-family:inherit}
-  .coderow .join{width:90px;border-radius:12px;border:none;background:var(--accent);color:#0e1411;
-    font-weight:800;font-family:inherit;cursor:pointer}
-
   /* ===== auth / waiting cards ===== */
   .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 18px;margin-top:8px}
   .center{text-align:center}
@@ -176,6 +156,24 @@
   /* ===== dice roll animation ===== */
   .die.rolling{animation:ndroll .16s ease-in-out infinite}
   @keyframes ndroll{0%,100%{transform:translateY(0) rotate(-7deg)}50%{transform:translateY(-4px) rotate(7deg)}}
+
+  /* ===== disconnect banner ===== */
+  .dcbanner{align-self:center;display:flex;align-items:center;gap:8px;margin:2px 0 4px;padding:6px 13px;border-radius:999px;
+    background:rgba(217,164,65,.14);border:1px solid rgba(217,164,65,.4);color:#e6c072;font-size:12px;font-weight:700;text-align:center}
+  .dcdot{width:7px;height:7px;border-radius:50%;background:#d9a441;flex:none;animation:ndpulse2 1.3s infinite}
+
+  /* ===== opening roll overlay ===== */
+  .openmodal{max-width:340px}
+  .openttl{font-size:20px;font-weight:800;margin-bottom:4px}
+  .opensub{font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:22px}
+  .openrow{display:flex;align-items:stretch;justify-content:center;gap:14px;margin-bottom:20px}
+  .openside{display:flex;flex-direction:column;align-items:center;gap:12px;flex:1;padding:14px 6px;border-radius:14px;
+    border:1px solid var(--line);background:rgba(255,255,255,.02);transition:border-color .2s,background .2s}
+  .openside.win{border-color:var(--accent);background:rgba(70,172,121,.1)}
+  .opennm{font-size:13px;font-weight:700;color:var(--text2)}
+  .opendice{display:flex;min-height:34px;align-items:center}
+  .openvs{align-self:center;font-size:12px;font-weight:800;color:var(--muted)}
+  .openresult{font-size:16px;font-weight:800;color:var(--accent-text);min-height:22px}
 
   /* ===== result modal (from single-player) ===== */
   .overlay{position:fixed;inset:0;background:rgba(8,9,12,.72);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
@@ -224,30 +222,6 @@
     <div class="card center">
       <div class="muted" style="margin-bottom:14px">Sign in to play a friend or a ranked match.</div>
       <a class="btn primary" href="auth.html">Sign in</a>
-    </div>
-  </div>
-
-  <!-- ===================== LOBBY ===================== -->
-  <div id="lobby" class="hide">
-    <div class="topbar">
-      <a class="icbtn" href="home.html" aria-label="Back">‹</a>
-      <div class="tbtitle"><div class="ov">Play online</div><div class="sc">Long Narde</div></div>
-      <a class="icbtn" href="profile.html" aria-label="Profile">⚙</a>
-    </div>
-    <div class="lobby-h">Play online</div>
-    <div class="lobby-sub">Challenge a friend, or get matched for a ranked game.</div>
-    <div class="mecard">
-      <div class="who"><div class="av w" id="meAv">R</div>
-        <div><div class="nm" id="meName">…</div><div class="rating">You</div></div></div>
-      <div style="text-align:right"><div class="rating">Rating</div>
-        <div style="font-weight:800;font-size:18px" id="meRating">—</div></div>
-    </div>
-    <button class="big primary" id="quickBtn">⚡ Quick match <small>· ranked</small></button>
-    <button class="big ghost" id="friendBtn">👥 Play a friend <small>· casual</small></button>
-    <div class="codecard">
-      <div class="lab">Have a code from a friend?</div>
-      <div class="coderow"><input id="joinCode" placeholder="CODE" maxlength="6" autocomplete="off"/>
-        <button class="join" id="joinBtn">Join</button></div>
     </div>
   </div>
 
@@ -300,6 +274,7 @@
     </div>
 
     <div class="turnpill" id="turnpill"><span class="tdot"></span><span class="tlabel" id="tlabel">…</span></div>
+    <div class="dcbanner hide" id="dcBanner"><span class="dcdot"></span><span id="dcText">Opponent disconnected — waiting for them to return…</span></div>
 
     <div class="board" id="board">
       <div class="field">
@@ -350,9 +325,29 @@
       <div class="rava b" id="rAvaOpp">?</div>
     </div>
     <div class="rbtns">
-      <button class="btn primary" id="resHome">Back to lobby</button>
-      <a class="btn ghost" href="home.html">Home</a>
+      <button class="btn primary" id="resHome">Back to home</button>
+      <a class="btn ghost" href="profile.html">View profile</a>
     </div>
+  </div>
+</div>
+
+<!-- ===================== OPENING ROLL ===================== -->
+<div class="overlay" id="openOverlay">
+  <div class="modal openmodal">
+    <div class="openttl">Opening roll</div>
+    <div class="opensub">Higher die goes first</div>
+    <div class="openrow">
+      <div class="openside" id="openSideW">
+        <div class="opennm" id="openNmW">White</div>
+        <div class="opendice" id="openDieW"></div>
+      </div>
+      <div class="openvs">vs</div>
+      <div class="openside" id="openSideB">
+        <div class="opennm" id="openNmB">Black</div>
+        <div class="opendice" id="openDieB"></div>
+      </div>
+    </div>
+    <div class="openresult" id="openResult">…</div>
   </div>
 </div>
 
@@ -404,7 +399,8 @@ function headLimitFor(hm,pl,dice){ if(!hm[pl]&&dice[0]===dice[1]&&(dice[0]===3||
 
 /* ===================== helpers ===================== */
 var $=function(id){return document.getElementById(id);};
-function show(id){ ['authGate','lobby','waiting','game'].forEach(function(x){ $(x).classList.toggle('hide', x!==id); }); }
+function show(id){ ['authGate','waiting','game'].forEach(function(x){ $(x).classList.toggle('hide', x!==id); }); }
+function toHome(){ location.href='home.html'; }
 function toast(m){ var t=$('toast'); t.textContent=m; t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},1900); }
 function boardFromRow(row){ var o=row.board.off; return {pts:row.board.pts.slice(), off:{1:(o['1']!=null?o['1']:o[1]), '-1':(o['-1']!=null?o['-1']:o[-1])}}; }
 function offN(bd,pl){ return bd.off[pl]!=null?bd.off[pl]:bd.off[String(pl)]; }
@@ -422,6 +418,7 @@ var G={board:null,turnStart:null,dice:null,seqs:[],maxLen:0,prefix:[],selected:n
 var cellEls={};
 var lastRollKey='';               // dice roll-animation guard
 var searchTimer=null, searchT0=0; // radar searching screen
+var oppEverPresent=false;         // have we seen the opponent online this game?
 function myClass(){ return MYCOLOR===WHITE?'w':'b'; }
 function oppClass(){ return OPP===WHITE?'w':'b'; }
 function isMyTurn(){ return !!(MATCH && MATCH.status==='active' && MATCH.turn===MYCOLOR); }
@@ -438,19 +435,16 @@ async function boot(){
   MY_NAME=(pr&&(pr.username||pr.name||pr.handle))||u.email||'you';
   MY_RATING=(pr&&pr.rating!=null)?pr.rating:1200;
   MY_COUNTRY=(pr&&(pr.country||pr.flag))||'';
-  $('meName').textContent=MY_NAME;
-  $('meRating').textContent=MY_RATING;
-  $('meAv').textContent=initial(MY_NAME);
-  // deep-links: go straight to the action, no lobby flash
+  // Home is the lobby — this page only ever runs an action or resumes a game.
   var params=new URLSearchParams(location.search);
   var code=params.get('join'), goParam=params.get('go');
-  if(code){ $('joinCode').value=code.toUpperCase(); doJoin(); return; }
-  if(goParam==='quick'){ $('quickBtn').onclick(); return; }
-  if(goParam==='friend'){ $('friendBtn').onclick(); return; }
+  if(goParam==='quick'){ startQuick(); return; }
+  if(goParam==='friend'){ startFriend(); return; }
+  if(code){ doJoin(code); return; }
   // reconnect: resume an active match I'm already in
   var act=(await sb.from('matches').select('*').or('white_id.eq.'+u.id+',black_id.eq.'+u.id).eq('status','active').limit(1)).data;
   if(act&&act[0]){ enterMatch(act[0]); return; }
-  show('lobby');
+  toHome();
 }
 
 /* ===================== radar searching UI ===================== */
@@ -468,40 +462,56 @@ function startSearchUI(){
 }
 function stopSearchUI(){ clearInterval(searchTimer); searchTimer=null; $('searchWrap').classList.add('hide'); }
 
-/* ===================== lobby actions ===================== */
-$('friendBtn').onclick=async function(){
+/* ===================== online actions (entered from Home) ===================== */
+async function startFriend(){
   show('waiting'); $('waitOv').textContent='Casual game';
   $('searchWrap').classList.add('hide'); $('inviteWrap').classList.remove('hide'); $('inviteCode').textContent='——————';
-  var j=await call('create_invite'); if(!j){ show('lobby'); return; }
+  var j=await call('create_invite'); if(!j){ toHome(); return; }
   MATCH=j.match; MYCOLOR=(j.match.white_id===ME.id)?WHITE:BLACK; OPP=-MYCOLOR;
   $('inviteCode').textContent=j.code;
-  subscribeMatch(j.match.id, true); };
+  subscribeMatch(j.match.id, true);
+}
 $('copyLink').onclick=function(){ var url=location.origin+location.pathname+'?join='+$('inviteCode').textContent;
   if(navigator.clipboard){ navigator.clipboard.writeText(url).then(function(){toast('Link copied');},function(){toast(url);}); }
   else toast(url); };
-$('joinBtn').onclick=doJoin;
-async function doJoin(){ var code=$('joinCode').value.trim().toUpperCase(); if(code.length<4) return toast('Enter a code');
-  var j=await call('join_invite',{code:code}); if(!j){ show('lobby'); return; } enterMatch(j.match); }
-$('quickBtn').onclick=async function(){
+async function doJoin(code){ code=(code||'').trim().toUpperCase(); if(code.length<4){ toast('Enter a code'); toHome(); return; }
+  var j=await call('join_invite',{code:code}); if(!j){ toHome(); return; } enterMatch(j.match); }
+async function startQuick(){
   show('waiting'); $('waitOv').textContent='Ranked match';
   $('inviteWrap').classList.add('hide'); $('searchWrap').classList.remove('hide');
   startSearchUI();
-  var j=await call('quick_join'); if(!j){ stopSearchUI(); show('lobby'); return; }
+  var j=await call('quick_join'); if(!j){ stopSearchUI(); toHome(); return; }
   if(j.matched){ stopSearchUI(); enterMatch(j.match); }
-  else { subscribeQueue(); } };
+  else { subscribeQueue(); }
+}
 function cancelWaiting(){ stopSearchUI();
   (async function(){ await call('cancel_queue'); })();
   if(qchan){ sb.removeChannel(qchan); qchan=null; }
-  if(chan){ sb.removeChannel(chan); chan=null; } MATCH=null; show('lobby'); }
+  if(chan){ sb.removeChannel(chan); chan=null; } MATCH=null; toHome(); }
 $('cancelWait').onclick=cancelWaiting;
 $('cancelSearch').onclick=cancelWaiting;
 $('waitBack').onclick=cancelWaiting;
-$('gameBack').onclick=function(){ if(chan){ sb.removeChannel(chan); chan=null; } show('lobby'); };
+$('gameBack').onclick=function(){ if(chan){ sb.removeChannel(chan); chan=null; } toHome(); };
 
 /* ===================== realtime ===================== */
 function subscribeMatch(id, waitingForJoin){ if(chan) sb.removeChannel(chan);
-  chan=sb.channel('m'+id).on('postgres_changes',{event:'UPDATE',schema:'public',table:'matches',filter:'id=eq.'+id},
-    function(p){ var row=p.new; if(waitingForJoin && row.status==='active'){ enterMatch(row); } else if(MATCH){ onMatchUpdate(row); } }).subscribe(); }
+  oppEverPresent=false;
+  chan=sb.channel('m'+id,{config:{presence:{key:ME.id}}})
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'matches',filter:'id=eq.'+id},
+      function(p){ var row=p.new; if(waitingForJoin && row.status==='active'){ enterMatch(row); } else if(MATCH){ onMatchUpdate(row); } })
+    .on('presence',{event:'sync'},updatePresence)
+    .on('presence',{event:'join'},updatePresence)
+    .on('presence',{event:'leave'},updatePresence)
+    .subscribe(function(status){ if(status==='SUBSCRIBED'){ try{ chan.track({online:true}); }catch(e){} } }); }
+/* Show a banner while the opponent is away; clears when they return (no auto-forfeit). */
+function updatePresence(){
+  var b=$('dcBanner'); if(!b) return;
+  if(!chan || !chan.presenceState || !MATCH || MATCH.status!=='active'){ b.classList.add('hide'); return; }
+  var oppId=(MYCOLOR===WHITE)?MATCH.black_id:MATCH.white_id;
+  var st=chan.presenceState(); var online=!!(oppId && st[oppId]);
+  if(online) oppEverPresent=true;
+  b.classList.toggle('hide', !(oppEverPresent && !online));
+}
 function subscribeQueue(){ if(qchan) sb.removeChannel(qchan);
   qchan=sb.channel('q'+ME.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'matches'},
     function(p){ var row=p.new; if(row.status==='active'&&(row.white_id===ME.id||row.black_id===ME.id)){ sb.removeChannel(qchan); qchan=null; enterMatch(row); } }).subscribe(); }
@@ -517,9 +527,37 @@ function enterMatch(row){
   setupStrips();
   G={board:null,turnStart:null,dice:null,seqs:[],maxLen:0,prefix:[],selected:null,submitting:false,_destMap:{}};
   show('game');
+  $('dcBanner').classList.add('hide');
   subscribeMatch(row.id,false);
   fetchOpp();
   syncFromMatch();
+  maybeShowOpening(row);
+}
+/* ===================== opening roll reveal ===================== */
+function oppNameOr(fb){ var n=$('oppName')?$('oppName').textContent:''; return (n && n!=='Opponent')?n:fb; }
+function maybeShowOpening(row){
+  if(!row.open_roll || row.status!=='active') return;
+  var key='nd_open_'+row.id;
+  try{ if(localStorage.getItem(key)) return; localStorage.setItem(key,'1'); }catch(e){}
+  var ow=row.open_roll.w, ob=row.open_roll.b, starter=(ow>ob)?WHITE:BLACK;
+  $('openNmW').textContent=(MYCOLOR===WHITE?'You':oppNameOr('White'));
+  $('openNmB').textContent=(MYCOLOR===BLACK?'You':oppNameOr('Black'));
+  $('openResult').textContent='…';
+  $('openSideW').classList.remove('win'); $('openSideB').classList.remove('win');
+  $('openOverlay').classList.add('show');
+  var dw=$('openDieW'), db=$('openDieB'), i=0, ticks=9;
+  var iv=setInterval(function(){
+    dw.innerHTML=''; dw.appendChild(buildDie(rnd6(),false,true));
+    db.innerHTML=''; db.appendChild(buildDie(rnd6(),false,true));
+    if(++i>=ticks){ clearInterval(iv);
+      dw.innerHTML=''; dw.appendChild(buildDie(ow,false,false));
+      db.innerHTML=''; db.appendChild(buildDie(ob,false,false));
+      $('openSideW').classList.toggle('win',starter===WHITE);
+      $('openSideB').classList.toggle('win',starter===BLACK);
+      $('openResult').textContent=(starter===MYCOLOR)?'You go first!':'Opponent goes first';
+      setTimeout(function(){ $('openOverlay').classList.remove('show'); }, 1800);
+    }
+  },70);
 }
 function onMatchUpdate(row){
   MATCH=row;
@@ -790,11 +828,15 @@ $('resignBtn').onclick=async function(){ if(isFinished()) return; if(!confirm('R
 
 /* ===================== result ===================== */
 function showResult(row){
+  $('dcBanner').classList.add('hide');
   var iWon=(row.winner===MYCOLOR), mars=!!row.mars, pts=mars?2:1;
   var wt=$('winTitle');
   wt.textContent = iWon ? (mars?'Mars!':'Victory') : (mars?'Mars — you lost':'Defeat');
   wt.style.color = iWon ? '#7fdca8' : '#e08079';
-  $('ptsBadge').textContent='+'+pts;
+  var badge=$('ptsBadge');
+  badge.textContent=(iWon?'+':'−')+pts;                       // winner gains, loser loses — not +2 for both
+  badge.style.borderColor=iWon?'var(--accent)':'#d6584f';
+  badge.style.color=iWon?'var(--accent-text)':'#e08079';
   var txt;
   if(iWon) txt = mars ? 'Double win — your opponent bore off <b>0</b> checkers. Worth 2 points.' : 'You won this game. Worth 1 point.';
   else txt = mars ? 'Mars — you bore off <b>0</b> checkers. Your opponent scores 2 points.' : 'Your opponent won this game. Worth 1 point.';
@@ -805,11 +847,11 @@ function showResult(row){
   am.className='rava '+myClass()+(iWon?' win':''); am.textContent=initial(MY_NAME); am.style.opacity=iWon?'1':'.6';
   ao.className='rava '+oppClass()+(iWon?'':' win'); ao.textContent=initial($('oppName').textContent); ao.style.opacity=iWon?'.6':'1';
   $('overlay').classList.add('show');
-  // for a ranked game the server just changed our rating — refresh it for the lobby
+  // for a ranked game the server just changed our rating — refresh our strip
   if(row.is_rated){ sb.from('profiles').select('rating').eq('id',ME.id).single().then(function(p){
-    if(p&&p.data&&p.data.rating!=null){ MY_RATING=p.data.rating; $('meRating').textContent=MY_RATING; $('meGameRating').textContent=MY_RATING; } }); }
+    if(p&&p.data&&p.data.rating!=null){ MY_RATING=p.data.rating; $('meGameRating').textContent=MY_RATING; } }); }
 }
-$('resHome').onclick=function(){ $('overlay').classList.remove('show'); if(chan){ sb.removeChannel(chan); chan=null; } MATCH=null; boot(); };
+$('resHome').onclick=function(){ $('overlay').classList.remove('show'); if(chan){ sb.removeChannel(chan); chan=null; } MATCH=null; toHome(); };
 
 /* ===================== go ===================== */
 boot();
