@@ -409,6 +409,9 @@ async function boot(){
   // deep-link ?join=CODE
   var code=new URLSearchParams(location.search).get('join');
   if(code){ $('joinCode').value=code.toUpperCase(); doJoin(); return; }
+  var goParam=new URLSearchParams(location.search).get('go');
+  if(goParam==='quick'){ $('quickBtn').onclick(); return; }
+  if(goParam==='friend'){ $('friendBtn').onclick(); return; }
   // reconnect: resume an active match I'm already in
   var act=(await sb.from('matches').select('*').or('white_id.eq.'+u.id+',black_id.eq.'+u.id).eq('status','active').limit(1)).data;
   if(act&&act[0]) enterMatch(act[0]);
