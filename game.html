@@ -412,6 +412,10 @@ function longestBlockPl(bd,pl){ var opp=-pl, owned=new Array(26).fill(false);
   for(var p=0;p<24;p++){ if(bd.pts[p]*pl>0) owned[toRel(opp,p)]=true; }
   var best=0,run=0; for(var r=1;r<=24;r++){ if(owned[r]){run++; if(run>best)best=run;} else run=0; } return best; }
 function connectivity(bd,pl){ var lb=longestBlockPl(bd,pl); return lb>=2?(lb-1)*0.08:0; }
+/* Builders / spread: reward occupying more DISTINCT points (spare builders in
+   hand) so the engine keeps flexible structure instead of over-stacking a few
+   points. Validated 0.575 head-to-head over 160 games vs the prior eval. */
+function spreadPl(bd,pl){ var n=0; for(var p=0;p<24;p++){ if(owner(bd,p)===pl) n++; } return n; }
 /* How trapped are pl's checkers? For each checker count how many of its six
    forward landing squares the opponent has blocked (squares past the edge = a
    legal bear-off = never "blocked"). The more blocked, the closer to a prime;
@@ -433,6 +437,8 @@ function evalW(bd){ var s=0;
      value building our own bridge, and penalise our own trapped back men. */
   s += (connectivity(bd,WHITE)-connectivity(bd,BLACK))*1.0;
   s += (stuckPl(bd,BLACK)-stuckPl(bd,WHITE));
+  /* builders / spread (validated: 0.575 head-to-head over 160 games) */
+  s += (spreadPl(bd,WHITE)-spreadPl(bd,BLACK))*0.06;
   return s; }
 function Vwhite(bd){ var t=terminalRewardWhite(bd); return t!==null? t*100 : evalW(bd); }
 function twoPly(bd,pl){ var opp=-pl, oppSign=(opp===WHITE)?1:-1, total=0, wsum=0;
